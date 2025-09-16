@@ -1,4 +1,5 @@
 syntax = "proto3";
+package prochat.v1;
 
 message CommunityGroup {
   string id = 1;

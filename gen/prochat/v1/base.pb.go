@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.9
 // 	protoc        (unknown)
-// source: base.proto
+// source: prochat/v1/base.proto
 
-package gen
+package prochatv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -32,7 +32,7 @@ type CommunityGroup struct {
 
 func (x *CommunityGroup) Reset() {
 	*x = CommunityGroup{}
-	mi := &file_base_proto_msgTypes[0]
+	mi := &file_prochat_v1_base_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *CommunityGroup) String() string {
 func (*CommunityGroup) ProtoMessage() {}
 
 func (x *CommunityGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[0]
+	mi := &file_prochat_v1_base_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *CommunityGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommunityGroup.ProtoReflect.Descriptor instead.
 func (*CommunityGroup) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{0}
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *CommunityGroup) GetId() string {
@@ -91,7 +91,7 @@ type Community struct {
 
 func (x *Community) Reset() {
 	*x = Community{}
-	mi := &file_base_proto_msgTypes[1]
+	mi := &file_prochat_v1_base_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +103,7 @@ func (x *Community) String() string {
 func (*Community) ProtoMessage() {}
 
 func (x *Community) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[1]
+	mi := &file_prochat_v1_base_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +116,7 @@ func (x *Community) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Community.ProtoReflect.Descriptor instead.
 func (*Community) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{1}
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Community) GetId() string {
@@ -133,40 +133,42 @@ func (x *Community) GetName() string {
 	return ""
 }
 
-var File_base_proto protoreflect.FileDescriptor
+var File_prochat_v1_base_proto protoreflect.FileDescriptor
 
-const file_base_proto_rawDesc = "" +
+const file_prochat_v1_base_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"base.proto\"b\n" +
+	"\x15prochat/v1/base.proto\x12\n" +
+	"prochat.v1\"m\n" +
 	"\x0eCommunityGroup\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12,\n" +
-	"\vcommunities\x18\x03 \x03(\v2\n" +
-	".CommunityR\vcommunities\"/\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x127\n" +
+	"\vcommunities\x18\x03 \x03(\v2\x15.prochat.v1.CommunityR\vcommunities\"/\n" +
 	"\tCommunity\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04nameB3B\tBaseProtoP\x01Z$github.com/varso/protchat-server/genb\x06proto3"
+	"\x04name\x18\x02 \x01(\tR\x04nameB\x9f\x01\n" +
+	"\x0ecom.prochat.v1B\tBaseProtoP\x01Z9github.com/varso/protchat-server/gen/prochat/v1;prochatv1\xa2\x02\x03PXX\xaa\x02\n" +
+	"Prochat.V1\xca\x02\n" +
+	"Prochat\\V1\xe2\x02\x16Prochat\\V1\\GPBMetadata\xea\x02\vProchat::V1b\x06proto3"
 
 var (
-	file_base_proto_rawDescOnce sync.Once
-	file_base_proto_rawDescData []byte
+	file_prochat_v1_base_proto_rawDescOnce sync.Once
+	file_prochat_v1_base_proto_rawDescData []byte
 )
 
-func file_base_proto_rawDescGZIP() []byte {
-	file_base_proto_rawDescOnce.Do(func() {
-		file_base_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_base_proto_rawDesc), len(file_base_proto_rawDesc)))
+func file_prochat_v1_base_proto_rawDescGZIP() []byte {
+	file_prochat_v1_base_proto_rawDescOnce.Do(func() {
+		file_prochat_v1_base_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_prochat_v1_base_proto_rawDesc), len(file_prochat_v1_base_proto_rawDesc)))
 	})
-	return file_base_proto_rawDescData
+	return file_prochat_v1_base_proto_rawDescData
 }
 
-var file_base_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_base_proto_goTypes = []any{
-	(*CommunityGroup)(nil), // 0: CommunityGroup
-	(*Community)(nil),      // 1: Community
+var file_prochat_v1_base_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_prochat_v1_base_proto_goTypes = []any{
+	(*CommunityGroup)(nil), // 0: prochat.v1.CommunityGroup
+	(*Community)(nil),      // 1: prochat.v1.Community
 }
-var file_base_proto_depIdxs = []int32{
-	1, // 0: CommunityGroup.communities:type_name -> Community
+var file_prochat_v1_base_proto_depIdxs = []int32{
+	1, // 0: prochat.v1.CommunityGroup.communities:type_name -> prochat.v1.Community
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -174,26 +176,26 @@ var file_base_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_base_proto_init() }
-func file_base_proto_init() {
-	if File_base_proto != nil {
+func init() { file_prochat_v1_base_proto_init() }
+func file_prochat_v1_base_proto_init() {
+	if File_prochat_v1_base_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_base_proto_rawDesc), len(file_base_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prochat_v1_base_proto_rawDesc), len(file_prochat_v1_base_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_base_proto_goTypes,
-		DependencyIndexes: file_base_proto_depIdxs,
-		MessageInfos:      file_base_proto_msgTypes,
+		GoTypes:           file_prochat_v1_base_proto_goTypes,
+		DependencyIndexes: file_prochat_v1_base_proto_depIdxs,
+		MessageInfos:      file_prochat_v1_base_proto_msgTypes,
 	}.Build()
-	File_base_proto = out.File
-	file_base_proto_goTypes = nil
-	file_base_proto_depIdxs = nil
+	File_prochat_v1_base_proto = out.File
+	file_prochat_v1_base_proto_goTypes = nil
+	file_prochat_v1_base_proto_depIdxs = nil
 }
