@@ -1,3 +1,7 @@
 module github.com/varsotech/prochat-server
 
-go 1.22.5
+go 1.23
+
+toolchain go1.24.6
+
+require google.golang.org/protobuf v1.36.9
