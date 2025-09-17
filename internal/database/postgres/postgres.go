@@ -8,7 +8,7 @@ import (
 )
 
 func Connect(ctx context.Context) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, os.Getenv("PG_URL"))
+	pool, err := pgxpool.New(ctx, os.Getenv("POSTGRES_URL"))
 	if err != nil {
 		return nil, err
 	}
