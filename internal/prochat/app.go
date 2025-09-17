@@ -13,12 +13,9 @@ func Run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	err := godotenv.Load()
-	if err != nil {
-		return err
-	}
+	_ = godotenv.Load()
 
-	_, err = postgres.Connect(ctx)
+	_, err := postgres.Connect(ctx)
 	if err != nil {
 		return err
 	}
