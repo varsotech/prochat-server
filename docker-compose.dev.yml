@@ -3,7 +3,6 @@ name: prochat-server-dev
 services:
   postgres:
     image: postgres:alpine
-    container_name: prochat-database-dev
     env_file:
       - .env
     environment:
@@ -13,7 +12,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - prochat-pg:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  prochat-pg:
+  postgres_data:
