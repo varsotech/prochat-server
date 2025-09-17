@@ -21,6 +21,50 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GetUserCommunitiesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Communities   []*CommunityGroup      `protobuf:"bytes,1,rep,name=communities,proto3" json:"communities,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserCommunitiesResponse) Reset() {
+	*x = GetUserCommunitiesResponse{}
+	mi := &file_prochat_v1_base_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserCommunitiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserCommunitiesResponse) ProtoMessage() {}
+
+func (x *GetUserCommunitiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_prochat_v1_base_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserCommunitiesResponse.ProtoReflect.Descriptor instead.
+func (*GetUserCommunitiesResponse) Descriptor() ([]byte, []int) {
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetUserCommunitiesResponse) GetCommunities() []*CommunityGroup {
+	if x != nil {
+		return x.Communities
+	}
+	return nil
+}
+
 type CommunityGroup struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -32,7 +76,7 @@ type CommunityGroup struct {
 
 func (x *CommunityGroup) Reset() {
 	*x = CommunityGroup{}
-	mi := &file_prochat_v1_base_proto_msgTypes[0]
+	mi := &file_prochat_v1_base_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +88,7 @@ func (x *CommunityGroup) String() string {
 func (*CommunityGroup) ProtoMessage() {}
 
 func (x *CommunityGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_prochat_v1_base_proto_msgTypes[0]
+	mi := &file_prochat_v1_base_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +101,7 @@ func (x *CommunityGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommunityGroup.ProtoReflect.Descriptor instead.
 func (*CommunityGroup) Descriptor() ([]byte, []int) {
-	return file_prochat_v1_base_proto_rawDescGZIP(), []int{0}
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CommunityGroup) GetId() string {
@@ -85,13 +129,17 @@ type Community struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	IconUrl       string                 `protobuf:"bytes,3,opt,name=icon_url,json=iconUrl,proto3" json:"icon_url,omitempty"`
+	Online        int64                  `protobuf:"varint,4,opt,name=online,proto3" json:"online,omitempty"`
+	Members       []*Member              `protobuf:"bytes,5,rep,name=members,proto3" json:"members,omitempty"`
+	Channels      []*Channel             `protobuf:"bytes,6,rep,name=channels,proto3" json:"channels,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Community) Reset() {
 	*x = Community{}
-	mi := &file_prochat_v1_base_proto_msgTypes[1]
+	mi := &file_prochat_v1_base_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +151,7 @@ func (x *Community) String() string {
 func (*Community) ProtoMessage() {}
 
 func (x *Community) ProtoReflect() protoreflect.Message {
-	mi := &file_prochat_v1_base_proto_msgTypes[1]
+	mi := &file_prochat_v1_base_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +164,7 @@ func (x *Community) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Community.ProtoReflect.Descriptor instead.
 func (*Community) Descriptor() ([]byte, []int) {
-	return file_prochat_v1_base_proto_rawDescGZIP(), []int{1}
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Community) GetId() string {
@@ -133,17 +181,161 @@ func (x *Community) GetName() string {
 	return ""
 }
 
+func (x *Community) GetIconUrl() string {
+	if x != nil {
+		return x.IconUrl
+	}
+	return ""
+}
+
+func (x *Community) GetOnline() int64 {
+	if x != nil {
+		return x.Online
+	}
+	return 0
+}
+
+func (x *Community) GetMembers() []*Member {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+func (x *Community) GetChannels() []*Channel {
+	if x != nil {
+		return x.Channels
+	}
+	return nil
+}
+
+type Channel struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Channel) Reset() {
+	*x = Channel{}
+	mi := &file_prochat_v1_base_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Channel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Channel) ProtoMessage() {}
+
+func (x *Channel) ProtoReflect() protoreflect.Message {
+	mi := &file_prochat_v1_base_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Channel.ProtoReflect.Descriptor instead.
+func (*Channel) Descriptor() ([]byte, []int) {
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Channel) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Channel) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type Member struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Member) Reset() {
+	*x = Member{}
+	mi := &file_prochat_v1_base_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Member) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Member) ProtoMessage() {}
+
+func (x *Member) ProtoReflect() protoreflect.Message {
+	mi := &file_prochat_v1_base_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Member.ProtoReflect.Descriptor instead.
+func (*Member) Descriptor() ([]byte, []int) {
+	return file_prochat_v1_base_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Member) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Member) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 var File_prochat_v1_base_proto protoreflect.FileDescriptor
 
 const file_prochat_v1_base_proto_rawDesc = "" +
 	"\n" +
 	"\x15prochat/v1/base.proto\x12\n" +
-	"prochat.v1\"m\n" +
+	"prochat.v1\"Z\n" +
+	"\x1aGetUserCommunitiesResponse\x12<\n" +
+	"\vcommunities\x18\x01 \x03(\v2\x1a.prochat.v1.CommunityGroupR\vcommunities\"m\n" +
 	"\x0eCommunityGroup\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x127\n" +
-	"\vcommunities\x18\x03 \x03(\v2\x15.prochat.v1.CommunityR\vcommunities\"/\n" +
+	"\vcommunities\x18\x03 \x03(\v2\x15.prochat.v1.CommunityR\vcommunities\"\xc1\x01\n" +
 	"\tCommunity\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
+	"\bicon_url\x18\x03 \x01(\tR\aiconUrl\x12\x16\n" +
+	"\x06online\x18\x04 \x01(\x03R\x06online\x12,\n" +
+	"\amembers\x18\x05 \x03(\v2\x12.prochat.v1.MemberR\amembers\x12/\n" +
+	"\bchannels\x18\x06 \x03(\v2\x13.prochat.v1.ChannelR\bchannels\"-\n" +
+	"\aChannel\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\",\n" +
+	"\x06Member\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04nameB\x9f\x01\n" +
 	"\x0ecom.prochat.v1B\tBaseProtoP\x01Z9github.com/varso/protchat-server/gen/prochat/v1;prochatv1\xa2\x02\x03PXX\xaa\x02\n" +
@@ -162,18 +354,24 @@ func file_prochat_v1_base_proto_rawDescGZIP() []byte {
 	return file_prochat_v1_base_proto_rawDescData
 }
 
-var file_prochat_v1_base_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_prochat_v1_base_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_prochat_v1_base_proto_goTypes = []any{
-	(*CommunityGroup)(nil), // 0: prochat.v1.CommunityGroup
-	(*Community)(nil),      // 1: prochat.v1.Community
+	(*GetUserCommunitiesResponse)(nil), // 0: prochat.v1.GetUserCommunitiesResponse
+	(*CommunityGroup)(nil),             // 1: prochat.v1.CommunityGroup
+	(*Community)(nil),                  // 2: prochat.v1.Community
+	(*Channel)(nil),                    // 3: prochat.v1.Channel
+	(*Member)(nil),                     // 4: prochat.v1.Member
 }
 var file_prochat_v1_base_proto_depIdxs = []int32{
-	1, // 0: prochat.v1.CommunityGroup.communities:type_name -> prochat.v1.Community
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	1, // 0: prochat.v1.GetUserCommunitiesResponse.communities:type_name -> prochat.v1.CommunityGroup
+	2, // 1: prochat.v1.CommunityGroup.communities:type_name -> prochat.v1.Community
+	4, // 2: prochat.v1.Community.members:type_name -> prochat.v1.Member
+	3, // 3: prochat.v1.Community.channels:type_name -> prochat.v1.Channel
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_prochat_v1_base_proto_init() }
@@ -187,7 +385,7 @@ func file_prochat_v1_base_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prochat_v1_base_proto_rawDesc), len(file_prochat_v1_base_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -11,6 +11,22 @@ import type { Message } from "@bufbuild/protobuf";
 export declare const file_prochat_v1_base: GenFile;
 
 /**
+ * @generated from message prochat.v1.GetUserCommunitiesResponse
+ */
+export declare type GetUserCommunitiesResponse = Message<"prochat.v1.GetUserCommunitiesResponse"> & {
+  /**
+   * @generated from field: repeated prochat.v1.CommunityGroup communities = 1;
+   */
+  communities: CommunityGroup[];
+};
+
+/**
+ * Describes the message prochat.v1.GetUserCommunitiesResponse.
+ * Use `create(GetUserCommunitiesResponseSchema)` to create a new message.
+ */
+export declare const GetUserCommunitiesResponseSchema: GenMessage<GetUserCommunitiesResponse>;
+
+/**
  * @generated from message prochat.v1.CommunityGroup
  */
 export declare type CommunityGroup = Message<"prochat.v1.CommunityGroup"> & {
@@ -49,6 +65,26 @@ export declare type Community = Message<"prochat.v1.Community"> & {
    * @generated from field: string name = 2;
    */
   name: string;
+
+  /**
+   * @generated from field: string icon_url = 3;
+   */
+  iconUrl: string;
+
+  /**
+   * @generated from field: int64 online = 4;
+   */
+  online: bigint;
+
+  /**
+   * @generated from field: repeated prochat.v1.Member members = 5;
+   */
+  members: Member[];
+
+  /**
+   * @generated from field: repeated prochat.v1.Channel channels = 6;
+   */
+  channels: Channel[];
 };
 
 /**
@@ -56,4 +92,46 @@ export declare type Community = Message<"prochat.v1.Community"> & {
  * Use `create(CommunitySchema)` to create a new message.
  */
 export declare const CommunitySchema: GenMessage<Community>;
+
+/**
+ * @generated from message prochat.v1.Channel
+ */
+export declare type Channel = Message<"prochat.v1.Channel"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+};
+
+/**
+ * Describes the message prochat.v1.Channel.
+ * Use `create(ChannelSchema)` to create a new message.
+ */
+export declare const ChannelSchema: GenMessage<Channel>;
+
+/**
+ * @generated from message prochat.v1.Member
+ */
+export declare type Member = Message<"prochat.v1.Member"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+};
+
+/**
+ * Describes the message prochat.v1.Member.
+ * Use `create(MemberSchema)` to create a new message.
+ */
+export declare const MemberSchema: GenMessage<Member>;
 

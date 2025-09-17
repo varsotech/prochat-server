@@ -8,19 +8,40 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
  * Describes the file prochat/v1/base.proto.
  */
 export const file_prochat_v1_base = /*@__PURE__*/
-  fileDesc("ChVwcm9jaGF0L3YxL2Jhc2UucHJvdG8SCnByb2NoYXQudjEiVgoOQ29tbXVuaXR5R3JvdXASCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIqCgtjb21tdW5pdGllcxgDIAMoCzIVLnByb2NoYXQudjEuQ29tbXVuaXR5IiUKCUNvbW11bml0eRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJQp8BCg5jb20ucHJvY2hhdC52MUIJQmFzZVByb3RvUAFaOWdpdGh1Yi5jb20vdmFyc28vcHJvdGNoYXQtc2VydmVyL2dlbi9wcm9jaGF0L3YxO3Byb2NoYXR2MaICA1BYWKoCClByb2NoYXQuVjHKAgpQcm9jaGF0XFYx4gIWUHJvY2hhdFxWMVxHUEJNZXRhZGF0YeoCC1Byb2NoYXQ6OlYxYgZwcm90bzM");
+  fileDesc("ChVwcm9jaGF0L3YxL2Jhc2UucHJvdG8SCnByb2NoYXQudjEiTQoaR2V0VXNlckNvbW11bml0aWVzUmVzcG9uc2USLwoLY29tbXVuaXRpZXMYASADKAsyGi5wcm9jaGF0LnYxLkNvbW11bml0eUdyb3VwIlYKDkNvbW11bml0eUdyb3VwEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSKgoLY29tbXVuaXRpZXMYAyADKAsyFS5wcm9jaGF0LnYxLkNvbW11bml0eSKTAQoJQ29tbXVuaXR5EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEAoIaWNvbl91cmwYAyABKAkSDgoGb25saW5lGAQgASgDEiMKB21lbWJlcnMYBSADKAsyEi5wcm9jaGF0LnYxLk1lbWJlchIlCghjaGFubmVscxgGIAMoCzITLnByb2NoYXQudjEuQ2hhbm5lbCIjCgdDaGFubmVsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkiIgoGTWVtYmVyEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAlCnwEKDmNvbS5wcm9jaGF0LnYxQglCYXNlUHJvdG9QAVo5Z2l0aHViLmNvbS92YXJzby9wcm90Y2hhdC1zZXJ2ZXIvZ2VuL3Byb2NoYXQvdjE7cHJvY2hhdHYxogIDUFhYqgIKUHJvY2hhdC5WMcoCClByb2NoYXRcVjHiAhZQcm9jaGF0XFYxXEdQQk1ldGFkYXRh6gILUHJvY2hhdDo6VjFiBnByb3RvMw");
+
+/**
+ * Describes the message prochat.v1.GetUserCommunitiesResponse.
+ * Use `create(GetUserCommunitiesResponseSchema)` to create a new message.
+ */
+export const GetUserCommunitiesResponseSchema = /*@__PURE__*/
+  messageDesc(file_prochat_v1_base, 0);
 
 /**
  * Describes the message prochat.v1.CommunityGroup.
  * Use `create(CommunityGroupSchema)` to create a new message.
  */
 export const CommunityGroupSchema = /*@__PURE__*/
-  messageDesc(file_prochat_v1_base, 0);
+  messageDesc(file_prochat_v1_base, 1);
 
 /**
  * Describes the message prochat.v1.Community.
  * Use `create(CommunitySchema)` to create a new message.
  */
 export const CommunitySchema = /*@__PURE__*/
-  messageDesc(file_prochat_v1_base, 1);
+  messageDesc(file_prochat_v1_base, 2);
+
+/**
+ * Describes the message prochat.v1.Channel.
+ * Use `create(ChannelSchema)` to create a new message.
+ */
+export const ChannelSchema = /*@__PURE__*/
+  messageDesc(file_prochat_v1_base, 3);
+
+/**
+ * Describes the message prochat.v1.Member.
+ * Use `create(MemberSchema)` to create a new message.
+ */
+export const MemberSchema = /*@__PURE__*/
+  messageDesc(file_prochat_v1_base, 4);
 
