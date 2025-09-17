@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/varsotech/prochat-server/internal/prochat"
 	"log/slog"
 	"os"
+
+	"github.com/varsotech/prochat-server/internal/prochat"
 )
 
 func main() {
