@@ -2,6 +2,7 @@ package prochat
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 
@@ -10,15 +11,19 @@ import (
 )
 
 func Run() error {
+	slog.Info("initializing server")
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	_ = godotenv.Load()
 
-	_, err := postgres.Connect(ctx)
+	_, err := postgres.Connect(ctx, os.Getenv("POSTGRES_URL"))
 	if err != nil {
 		return err
 	}
+
+	slog.Info("server is ready to accept connections")
 
 	return nil
 }

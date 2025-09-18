@@ -3,7 +3,7 @@ FROM golang:alpine AS builder
 ENV CGO_ENABLED=0
 
 # Install git for fetching the dependencies
-RUN apk update && apk add --no-cache git && apk add --no-cach bash && apk add build-base
+RUN apk update && apk add --no-cache build-base git curl bash 
 
 # Setup folders
 RUN mkdir /app
@@ -14,6 +14,8 @@ COPY go.mod ./
 RUN go mod download
 
 COPY . .
+
+RUN curl -sSL "https://github.com/bufbuild/buf/releases/download/v1.57.0/buf-$(uname -s)-$(uname -m)" -o "/usr/local/bin/buf" && chmod +x "/usr/local/bin/buf"
 
 RUN go generate ./...
 
