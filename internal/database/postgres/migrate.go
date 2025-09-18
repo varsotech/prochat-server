@@ -15,25 +15,18 @@ import (
 //go:embed migrations/*.sql
 var fs embed.FS
 
-func applyMigrations(ctx context.Context, user, password, host, port, databaseName string) error {
-	d, err := iofs.New(fs, "migrations")
+func applyMigrations(connectionString string) error {
+	driver, err := iofs.New(fs, "migrations")
 	if err != nil {
 		return fmt.Errorf("failed opening migrations dir: %w", err)
 	}
 
-	err = createDatabaseIfNotExists(ctx, user, password, host, port, databaseName)
-	if err != nil {
-		return fmt.Errorf("failed creating database: %w", err)
-	}
-
-	connectionString := newConnectionString(user, password, host, port, databaseName)
-
-	m, err := migrate.NewWithSourceInstance("iofs", d, connectionString)
+	migrator, err := migrate.NewWithSourceInstance("iofs", driver, connectionString)
 	if err != nil {
 		return fmt.Errorf("failed creating new migrations source: %w", err)
 	}
 
-	err = m.Up()
+	err = migrator.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed applying migrations: %w", err)
 	}
@@ -41,9 +34,7 @@ func applyMigrations(ctx context.Context, user, password, host, port, databaseNa
 	return nil
 }
 
-func createDatabaseIfNotExists(ctx context.Context, user, password, host, port, databaseName string) error {
-	connectionStringWithoutDatabase := newConnectionStringWithoutDatabase(user, password, host, port)
-
+func createDatabaseIfNotExists(ctx context.Context, connectionStringWithoutDatabase, databaseName string) error {
 	db, err := pgxpool.New(ctx, connectionStringWithoutDatabase)
 	if err != nil {
 		return fmt.Errorf("failed connecting to postgres: %w", err)

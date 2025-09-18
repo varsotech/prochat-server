@@ -9,7 +9,6 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	github.com/pkg/errors v0.9.1
 	google.golang.org/protobuf v1.36.9
 )
 
