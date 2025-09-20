@@ -10,7 +10,7 @@ import (
 func main() {
 	err := prochat.Run()
 	if err != nil {
-		slog.Error("prochat: error running server", "error", err)
+		slog.Error("error running server", "error", err)
 		os.Exit(1)
 	}
 }
