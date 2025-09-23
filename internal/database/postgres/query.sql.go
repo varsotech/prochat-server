@@ -15,7 +15,7 @@ import (
 const createAnonymousUser = `-- name: CreateAnonymousUser :one
 INSERT INTO users (id, username) 
 VALUES ($1, $2) 
-RETURNING id, username, email, password_hash, create_time
+RETURNING id, username, email, password_hash, created_at
 `
 
 type CreateAnonymousUserParams struct {
@@ -31,7 +31,7 @@ func (q *Queries) CreateAnonymousUser(ctx context.Context, arg CreateAnonymousUs
 		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.CreateTime,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -39,7 +39,7 @@ func (q *Queries) CreateAnonymousUser(ctx context.Context, arg CreateAnonymousUs
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, username, email, password_hash)
 VALUES ($1, $2, $3, $4)
-RETURNING id, username, email, password_hash, create_time
+RETURNING id, username, email, password_hash, created_at
 `
 
 type CreateUserParams struct {
@@ -62,7 +62,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.CreateTime,
+		&i.CreatedAt,
 	)
 	return i, err
 }

@@ -14,5 +14,5 @@ type User struct {
 	Username     string
 	Email        pgtype.Text
 	PasswordHash pgtype.Text
-	CreateTime   pgtype.Timestamptz
+	CreatedAt    pgtype.Timestamptz
 }
