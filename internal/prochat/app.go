@@ -41,7 +41,7 @@ func Run() error {
 	errGroup, ctx := errgroup.WithContext(ctx)
 
 	// Each routine must gracefully exit on context cancellation
-	errGroup.Go(httpserver.New(ctx, postgresClient).Serve)
+	errGroup.Go(httpserver.New(ctx, os.Getenv("HTTP_SERVER_PORT"), postgresClient).Serve)
 
 	err = errGroup.Wait()
 	if err != nil {

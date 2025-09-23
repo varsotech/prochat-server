@@ -23,6 +23,51 @@ func NewRoutes(postgresClient *pgxpool.Pool) Routes {
 
 func (o Routes) Login(w http.ResponseWriter, r *http.Request) {
 	slog.Info("handling login")
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	var req prochatv1.LoginRequest
+	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
+	if err != nil {
+		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	queries := postgres.New(o.PostgresClient)
+
+	user, err := queries.GetUserByLogin(r.Context(), req.Login)
+	if err != nil {
+		slog.Info("user not found", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusNotFound)
+		return
+	}
+
+	if !user.PasswordHash.Valid {
+		// TODO: Test this
+		slog.Info("no password found for account", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
+	passwordsMatch, err := comparePassword(req.Password, user.PasswordHash.String)
+	if err != nil {
+		slog.Error("failed comparing passwords", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	if !passwordsMatch {
+		slog.Info("wrong password", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusUnauthorized)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -64,7 +109,10 @@ func (o Routes) Register(w http.ResponseWriter, r *http.Request) {
 
 	// If no email and password provided, anonymously register the user
 	if req.Email == "" && req.Password == "" {
-		_, err = queries.CreateAnonymousUser(r.Context(), postgres.CreateAnonymousUserParams{ID: id, Username: req.Username})
+		_, err = queries.CreateAnonymousUser(r.Context(), postgres.CreateAnonymousUserParams{
+			ID:       id,
+			Username: req.Username,
+		})
 		if err != nil {
 			slog.Error("error creating anonymous user", "error", err, "request_uri", r.RequestURI)
 			http.Error(w, "", http.StatusInternalServerError)
@@ -94,10 +142,15 @@ func (o Routes) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = queries.CreateUser(r.Context(), postgres.CreateUserParams{ID: id, Username: req.Username, Email: pgtype.Text{String: req.Email, Valid: true}, PasswordHash: pgtype.Text{String: argon2idPassword, Valid: true}})
+	_, err = queries.CreateUser(r.Context(), postgres.CreateUserParams{
+		ID: id, Username: req.Username,
+		Email:        pgtype.Text{String: req.Email, Valid: true},
+		PasswordHash: pgtype.Text{String: argon2idPassword, Valid: true},
+	})
 	if err != nil {
 		slog.Error("error creating anonymous user", "error", err, "request_uri", r.RequestURI)
 		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

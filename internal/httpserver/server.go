@@ -13,12 +13,14 @@ import (
 type Server struct {
 	Ctx            context.Context
 	PostgresClient *pgxpool.Pool
+	Port           string
 }
 
-func New(ctx context.Context, postgresClient *pgxpool.Pool) *Server {
+func New(ctx context.Context, port string, postgresClient *pgxpool.Pool) *Server {
 	return &Server{
 		Ctx:            ctx,
 		PostgresClient: postgresClient,
+		Port:           port,
 	}
 }
 
@@ -31,7 +33,7 @@ func (s Server) Serve() error {
 	mux.HandleFunc("POST /api/v1/auth/register", authRoutes.Register)
 
 	srv := &http.Server{
-		Addr:    "localhost:8090",
+		Addr:    ":" + s.Port,
 		Handler: mux,
 		BaseContext: func(listener net.Listener) context.Context {
 			return s.Ctx

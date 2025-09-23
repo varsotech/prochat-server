@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/argon2"
+	"log/slog"
 	"strconv"
 	"strings"
 )
@@ -137,6 +138,7 @@ func comparePassword(password string, encodedHash string) (bool, error) {
 
 	// constant time compare
 	if len(computedHash) != len(expectedHash) {
+		slog.Error("unexpected hash length computed")
 		return false, nil
 	}
 	var diff byte

@@ -36,3 +36,24 @@ export declare type RegisterRequest = Message<"prochat.v1.RegisterRequest"> & {
  */
 export declare const RegisterRequestSchema: GenMessage<RegisterRequest>;
 
+/**
+ * @generated from message prochat.v1.LoginRequest
+ */
+export declare type LoginRequest = Message<"prochat.v1.LoginRequest"> & {
+  /**
+   * @generated from field: string login = 1;
+   */
+  login: string;
+
+  /**
+   * @generated from field: string password = 3;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message prochat.v1.LoginRequest.
+ * Use `create(LoginRequestSchema)` to create a new message.
+ */
+export declare const LoginRequestSchema: GenMessage<LoginRequest>;
+
