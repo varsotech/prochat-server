@@ -1,8 +1,8 @@
 # HTTP Server
 
-# FAQ
+## FAQ
 
-## Why use DiscardUnknown: true?
+### Why use DiscardUnknown: true?
 
 When unmarshaling HTTP request bodies, we use:
 ```golang
