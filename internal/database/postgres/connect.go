@@ -42,7 +42,7 @@ func newConnectionString(user, password, host, port, databaseName, sslMode strin
 	}
 
 	maxConn := ""
-	if maxConnections > {
+	if maxConnections > 0 {
 		maxConn = fmt.Sprintf("&pool_max_conns=%d", maxConnections)
 	}
 
