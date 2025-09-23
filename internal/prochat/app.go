@@ -2,6 +2,8 @@ package prochat
 
 import (
 	"context"
+	"fmt"
+	"github.com/redis/go-redis/v9"
 	"github.com/varsotech/prochat-server/internal/httpserver"
 	"golang.org/x/sync/errgroup"
 	"log/slog"
@@ -26,10 +28,20 @@ func Run() error {
 		return err
 	}
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+	})
+
+	_, err = redisClient.Ping(ctx).Result()
+	if err != nil {
+		slog.Error("error initializing redis client", "error", err)
+		return err
+	}
+
 	errGroup, ctx := errgroup.WithContext(ctx)
 
 	// Each routine must gracefully exit on context cancellation
-	errGroup.Go(httpserver.Server{Ctx: ctx, PostgresClient: postgresClient}.Serve)
+	errGroup.Go(httpserver.New(ctx, postgresClient).Serve)
 
 	err = errGroup.Wait()
 	if err != nil {

@@ -3,7 +3,7 @@ package httpserver
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/varsotech/prochat-server/internal/httpserver/routes/auth"
+	"github.com/varsotech/prochat-server/internal/auth"
 	"log/slog"
 	"net"
 	"net/http"
@@ -15,10 +15,20 @@ type Server struct {
 	PostgresClient *pgxpool.Pool
 }
 
+func New(ctx context.Context, postgresClient *pgxpool.Pool) *Server {
+	return &Server{
+		Ctx:            ctx,
+		PostgresClient: postgresClient,
+	}
+}
+
 func (s Server) Serve() error {
 	mux := http.NewServeMux()
 
-	auth.NewRoutes(s.PostgresClient).RegisterRoutes(mux)
+	authRoutes := auth.NewRoutes(s.PostgresClient)
+
+	mux.HandleFunc("POST /api/v1/auth/login", authRoutes.Login)
+	mux.HandleFunc("POST /api/v1/auth/register", authRoutes.Register)
 
 	srv := &http.Server{
 		Addr:    "localhost:8090",

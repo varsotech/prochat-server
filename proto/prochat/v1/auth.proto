@@ -2,8 +2,7 @@ syntax = "proto3";
 package prochat.v1;
 
 message RegisterRequest {
-  string user = 1;
+  string username = 1;
   string email = 2;
   string password = 3;
-  string fingerprint = 4;
 }

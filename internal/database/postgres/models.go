@@ -5,13 +5,14 @@
 package postgres
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type User struct {
-	ID           int64
+	ID           uuid.UUID
 	Username     string
 	Email        pgtype.Text
-	PasswordHash string
+	PasswordHash pgtype.Text
 	CreateTime   pgtype.Timestamptz
 }

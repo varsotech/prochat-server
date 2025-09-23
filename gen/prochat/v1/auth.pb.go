@@ -23,10 +23,9 @@ const (
 
 type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          string                 `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	Fingerprint   string                 `protobuf:"bytes,4,opt,name=fingerprint,proto3" json:"fingerprint,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -61,9 +60,9 @@ func (*RegisterRequest) Descriptor() ([]byte, []int) {
 	return file_prochat_v1_auth_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RegisterRequest) GetUser() string {
+func (x *RegisterRequest) GetUsername() string {
 	if x != nil {
-		return x.User
+		return x.Username
 	}
 	return ""
 }
@@ -82,24 +81,16 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
-func (x *RegisterRequest) GetFingerprint() string {
-	if x != nil {
-		return x.Fingerprint
-	}
-	return ""
-}
-
 var File_prochat_v1_auth_proto protoreflect.FileDescriptor
 
 const file_prochat_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"\x15prochat/v1/auth.proto\x12\n" +
-	"prochat.v1\"y\n" +
-	"\x0fRegisterRequest\x12\x12\n" +
-	"\x04user\x18\x01 \x01(\tR\x04user\x12\x14\n" +
+	"prochat.v1\"_\n" +
+	"\x0fRegisterRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x12 \n" +
-	"\vfingerprint\x18\x04 \x01(\tR\vfingerprintB\x9f\x01\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpasswordB\x9f\x01\n" +
 	"\x0ecom.prochat.v1B\tAuthProtoP\x01Z9github.com/varso/protchat-server/gen/prochat/v1;prochatv1\xa2\x02\x03PXX\xaa\x02\n" +
 	"Prochat.V1\xca\x02\n" +
 	"Prochat\\V1\xe2\x02\x16Prochat\\V1\\GPBMetadata\xea\x02\vProchat::V1b\x06proto3"

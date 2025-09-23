@@ -7,6 +7,9 @@ package postgres
 
 import (
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createAnonymousUser = `-- name: CreateAnonymousUser :one
@@ -16,12 +19,43 @@ RETURNING id, username, email, password_hash, create_time
 `
 
 type CreateAnonymousUserParams struct {
-	ID       int64
+	ID       uuid.UUID
 	Username string
 }
 
 func (q *Queries) CreateAnonymousUser(ctx context.Context, arg CreateAnonymousUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createAnonymousUser, arg.ID, arg.Username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreateTime,
+	)
+	return i, err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (id, username, email, password_hash)
+VALUES ($1, $2, $3, $4)
+RETURNING id, username, email, password_hash, create_time
+`
+
+type CreateUserParams struct {
+	ID           uuid.UUID
+	Username     string
+	Email        pgtype.Text
+	PasswordHash pgtype.Text
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.ID,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,

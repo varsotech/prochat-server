@@ -15,9 +15,9 @@ export declare const file_prochat_v1_auth: GenFile;
  */
 export declare type RegisterRequest = Message<"prochat.v1.RegisterRequest"> & {
   /**
-   * @generated from field: string user = 1;
+   * @generated from field: string username = 1;
    */
-  user: string;
+  username: string;
 
   /**
    * @generated from field: string email = 2;
@@ -28,11 +28,6 @@ export declare type RegisterRequest = Message<"prochat.v1.RegisterRequest"> & {
    * @generated from field: string password = 3;
    */
   password: string;
-
-  /**
-   * @generated from field: string fingerprint = 4;
-   */
-  fingerprint: string;
 };
 
 /**

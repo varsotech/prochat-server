@@ -11,9 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # needed for buf breaking comparison
+        uses: actions/checkout@v5
 
       - name: Install buf
         uses: bufbuild/buf-setup-action@v1.50.0
@@ -33,8 +31,51 @@ jobs:
 
       - name: Check for uncommitted changes
         run: |
-          if ! git diff --quiet; then
-            echo "::error::buf generate produced changes. Please commit generated files."
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "::error::Generated code is not up-to-date. Run 'go generate ./...' and commit changes."
             git --no-pager diff
             exit 1
           fi
+          
+  generate-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run go generate
+        run: go generate ./...
+
+      - name: Check for diff
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "::error::Generated code is not up-to-date. Run 'go generate ./...' and commit changes."
+            git --no-pager diff
+            exit 1
+          fi
+          
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./... -v
