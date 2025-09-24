@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestParseEncodedHash(t *testing.T) {
+func TestDecodeHash(t *testing.T) {
 	salt := []byte("1234567890abcdef")                 // 16 bytes
 	hash := []byte("12345678901234567890123456789012") // 32 bytes
 
@@ -65,7 +65,7 @@ func TestParseEncodedHash(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			params, gotSalt, gotHash, err := parseEncodedHash(tc.input)
+			params, gotSalt, gotHash, err := decodeHash(tc.input)
 			if tc.wantErr {
 				if err == nil {
 					t.Fatalf("expected error but got nil")

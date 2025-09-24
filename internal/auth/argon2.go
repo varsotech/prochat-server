@@ -59,6 +59,42 @@ func hashPassword(password string, p *Argon2Params) (string, error) {
 	return encoded, nil
 }
 
+func decodeHash(encodedHash string) (*Argon2Params, []byte, []byte, error) {
+	vals := strings.Split(encodedHash, "$")
+	if len(vals) != 6 {
+		return nil, nil, nil, fmt.Errorf("invalid hash format")
+	}
+
+	var version int
+	_, err := fmt.Sscanf(vals[2], "v=%d", &version)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if version != argon2.Version {
+		return nil, nil, nil, fmt.Errorf("incompatible hash version")
+	}
+
+	p := &Argon2Params{}
+	_, err = fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &p.Memory, &p.Time, &p.Threads)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	salt, err := base64.RawStdEncoding.Strict().DecodeString(vals[4])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	p.SaltLength = uint32(len(salt))
+
+	hash, err := base64.RawStdEncoding.Strict().DecodeString(vals[5])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	p.KeyLength = uint32(len(hash))
+
+	return p, salt, hash, nil
+}
+
 // parseEncodedHash extracts params, salt and hash from the encoded string.
 func parseEncodedHash(encoded string) (*Argon2Params, []byte, []byte, error) {
 	parts := strings.Split(encoded, "$")
@@ -129,7 +165,7 @@ func parseEncodedHash(encoded string) (*Argon2Params, []byte, []byte, error) {
 
 // comparePassword verifies a password against the encoded hash (from DB).
 func comparePassword(password string, encodedHash string) (bool, error) {
-	params, salt, expectedHash, err := parseEncodedHash(encodedHash)
+	params, salt, expectedHash, err := decodeHash(encodedHash)
 	if err != nil {
 		return false, err
 	}
