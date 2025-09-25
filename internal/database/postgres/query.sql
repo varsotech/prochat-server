@@ -10,3 +10,6 @@ RETURNING *;
 
 -- name: GetUserByLogin :one
 SELECT * FROM users WHERE username = @login OR email = @login;
+
+-- name: GetUserById :one
+SELECT id, username, display_name, email FROM users WHERE id = $1;

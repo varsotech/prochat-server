@@ -5,17 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
-func (r *Repo) StoreToken(ctx context.Context, key, value string, ttl time.Duration) error {
-	slog.Info("store token")
+func (r *Repo) SetAccessToken(ctx context.Context, token TokenData) error {
+	slog.Info("store access token")
 
-	// TODO: the value is currently just the userId, and not {"user_id": <uuid>}
-	_, err := r.redisClient.Set(ctx, key, value, ttl).Result()
+	_, err := r.redisClient.Set(ctx, token.formatTokenKey(), token.formatTokenValue(), token.TTL).Result()
 	if err != nil {
 		return fmt.Errorf("failed to store refresh token: %w", err)
 	}
@@ -23,8 +21,21 @@ func (r *Repo) StoreToken(ctx context.Context, key, value string, ttl time.Durat
 	return nil
 }
 
-func (r *Repo) GetToken(ctx context.Context, tokenId uuid.UUID, tokenType string) (string, bool, error) {
-	dataStr, err := r.redisClient.Get(ctx, r.formatTokenKey(tokenType, tokenId)).Result()
+func (r *Repo) SetRefreshToken(ctx context.Context, token TokenData, accessTokenId string) error {
+	slog.Info("store refresh token")
+
+	_, err := r.redisClient.Set(ctx, token.formatTokenKey(), token.formatTokenValueWithAccessToken(accessTokenId), token.TTL).Result()
+	if err != nil {
+		return fmt.Errorf("failed to store refresh token: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repo) GetUserIdFromToken(ctx context.Context, tokenId uuid.UUID, tokenType TokenType) (string, bool, error) {
+	// TODO: return correct values
+
+	dataStr, err := r.redisClient.Get(ctx, r.formatTokenKey(string(tokenType), tokenId)).Result()
 	if errors.Is(err, redis.Nil) {
 		return "", false, nil
 	}
@@ -32,8 +43,18 @@ func (r *Repo) GetToken(ctx context.Context, tokenId uuid.UUID, tokenType string
 		return "", false, fmt.Errorf("failed to get access token: %w", err)
 	}
 
-	// TODO: return correct value
 	return dataStr, true, nil
+}
+
+func (r *Repo) DeleteToken(ctx context.Context, tokenType string, tokenId uuid.UUID) error {
+	slog.Info("delete token")
+
+	_, err := r.redisClient.Del(ctx, r.formatTokenKey(tokenType, tokenId)).Result()
+	if err != nil {
+		return fmt.Errorf("failed to delete refresh token: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Repo) formatTokenKey(tokenType string, tokenId uuid.UUID) string {

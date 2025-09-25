@@ -1,6 +1,12 @@
 package auth
 
 import (
+	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -9,10 +15,6 @@ import (
 	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
 	"github.com/varsotech/prochat-server/internal/database/postgres"
 	"google.golang.org/protobuf/encoding/protojson"
-	"io"
-	"log/slog"
-	"net/http"
-	"strings"
 )
 
 type Handlers struct {
@@ -23,6 +25,27 @@ type Handlers struct {
 func NewHandlers(postgresClient *pgxpool.Pool, redisClient *redis.Client) Handlers {
 	authRepo := authrepo.New(redisClient)
 	return Handlers{postgresClient: postgresClient, authRepo: authRepo}
+}
+
+func (h Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
+	slog.Info("handling refresh")
+
+	refreshTokenCookie, err := r.Cookie("refreshToken")
+	if err != nil {
+		slog.Error("error getting refreshToken cookie", err)
+		http.Error(w, "error getting cookie", http.StatusUnauthorized)
+		return
+	}
+
+	// TODO: don't use uuid.MustParse(string)
+	refreshTokenUserId, _, err := h.authRepo.GetUserIdFromToken(r.Context(), uuid.MustParse(refreshTokenCookie.Value), authrepo.RefreshTokenType)
+	if err != nil {
+		slog.Error("error getting refreshToken userId", err)
+		http.Error(w, "error getting refreshToken userId", http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
@@ -75,18 +98,18 @@ func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	// TODO: DRY!
 	accessToken, refreshToken := createTokenPair(user.ID)
 
-	err = h.authRepo.StoreToken(r.Context(), accessToken.authString(), accessToken.UserId, accessToken.TTL)
+	err = h.authRepo.SetAccessToken(r.Context(), accessToken)
 	if err != nil {
 		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	err = h.authRepo.StoreToken(r.Context(), refreshToken.authString(), refreshToken.UserId, refreshToken.TTL)
+	err = h.authRepo.SetRefreshToken(r.Context(), refreshToken, accessToken.Id)
 	if err != nil {
 		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	accessTokenCookie := createCookie("accessToken", accessToken.Identifier, "/", accessTokenMaxAge)
-	refreshTokenCookie := createCookie("refreshToken", refreshToken.Identifier, "/auth/refresh", refreshTokenMaxAge)
+	accessTokenCookie := createCookie("accessToken", accessToken.Id, "/", authrepo.AccessTokenMaxAge)
+	refreshTokenCookie := createCookie("refreshToken", refreshToken.Id, "/api/v1/auth/refresh", authrepo.RefreshTokenMaxAge)
 
 	http.SetCookie(w, &accessTokenCookie)
 	http.SetCookie(w, &refreshTokenCookie)
@@ -181,18 +204,18 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 	// TODO: DRY!
 	accessToken, refreshToken := createTokenPair(id)
 
-	err = h.authRepo.StoreToken(r.Context(), accessToken.authString(), accessToken.UserId, accessToken.TTL)
+	err = h.authRepo.SetAccessToken(r.Context(), accessToken)
 	if err != nil {
 		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	err = h.authRepo.StoreToken(r.Context(), refreshToken.authString(), refreshToken.UserId, refreshToken.TTL)
+	err = h.authRepo.SetRefreshToken(r.Context(), refreshToken, accessToken.Id)
 	if err != nil {
 		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	accessTokenCookie := createCookie("accessToken", accessToken.Identifier, "/", accessTokenMaxAge)
-	refreshTokenCookie := createCookie("refreshToken", refreshToken.Identifier, "/auth/refresh", refreshTokenMaxAge)
+	accessTokenCookie := createCookie("accessToken", accessToken.Id, "/", authrepo.AccessTokenMaxAge)
+	refreshTokenCookie := createCookie("refreshToken", refreshToken.Id, "/api/v1/auth/refresh", authrepo.RefreshTokenMaxAge)
 
 	http.SetCookie(w, &accessTokenCookie)
 	http.SetCookie(w, &refreshTokenCookie)

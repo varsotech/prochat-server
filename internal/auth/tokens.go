@@ -1,53 +1,32 @@
 package auth
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
 )
 
-type TokenType string
-
-const (
-	AccessTokenType  TokenType = "access_token"
-	RefreshTokenType TokenType = "refresh_token"
-
-	accessTokenMaxAge  = 60 * 60 * 24      // 24 hours
-	refreshTokenMaxAge = 60 * 60 * 24 * 90 // 90 Days
-)
-
-type TokenData struct {
-	Type       TokenType     `json:"type"`
-	Identifier string        `json:"identifier"`
-	TTL        time.Duration `json:"ttl"`
-	UserId     string        `json:"user_id"`
-}
-
-func createTokenPair(userId uuid.UUID) (TokenData, TokenData) {
-	accessTokenTTL := time.Duration(accessTokenMaxAge) * time.Second
-	refreshTokenTTL := time.Duration(refreshTokenMaxAge) * time.Second
+func createTokenPair(userId uuid.UUID) (authrepo.TokenData, authrepo.TokenData) {
+	accessTokenTTL := time.Duration(authrepo.AccessTokenMaxAge) * time.Second
+	refreshTokenTTL := time.Duration(authrepo.RefreshTokenMaxAge) * time.Second
 
 	accessTokenId := uuid.New()
 	refreshTokenId := uuid.New()
 
-	accessTokenData := TokenData{
-		Type:       AccessTokenType,
-		Identifier: accessTokenId.String(),
-		TTL:        accessTokenTTL,
-		UserId:     userId.String(),
+	accessTokenData := authrepo.TokenData{
+		Type:   authrepo.AccessTokenType,
+		Id:     accessTokenId.String(),
+		TTL:    accessTokenTTL,
+		UserId: userId.String(),
 	}
 
-	refreshTokenData := TokenData{
-		Type:       RefreshTokenType,
-		Identifier: refreshTokenId.String(),
-		TTL:        refreshTokenTTL,
-		UserId:     userId.String(),
+	refreshTokenData := authrepo.TokenData{
+		Type:   authrepo.RefreshTokenType,
+		Id:     refreshTokenId.String(),
+		TTL:    refreshTokenTTL,
+		UserId: userId.String(),
 	}
 
 	return accessTokenData, refreshTokenData
-}
-
-func (tokenData *TokenData) authString() string {
-	return fmt.Sprintf("auth:%s:%s", tokenData.Type, tokenData.Identifier)
 }
