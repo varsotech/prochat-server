@@ -83,3 +83,24 @@ export declare type LoginRequest = Message<"prochat.v1.LoginRequest"> & {
  */
 export declare const LoginRequestSchema: GenMessage<LoginRequest>;
 
+/**
+ * @generated from message prochat.v1.LoginResponse
+ */
+export declare type LoginResponse = Message<"prochat.v1.LoginResponse"> & {
+  /**
+   * @generated from field: string refresh_token = 1;
+   */
+  refreshToken: string;
+
+  /**
+   * @generated from field: string access_token = 2;
+   */
+  accessToken: string;
+};
+
+/**
+ * Describes the message prochat.v1.LoginResponse.
+ * Use `create(LoginResponseSchema)` to create a new message.
+ */
+export declare const LoginResponseSchema: GenMessage<LoginResponse>;
+

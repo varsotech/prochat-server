@@ -72,6 +72,41 @@ func (o Routes) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	refreshToken, err := o.authRepo.CreateRefreshToken(r.Context(), user.ID)
+	if err != nil {
+		slog.Error("error creating refresh token", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	accessToken, err := o.authRepo.CreateAccessToken(r.Context(), user.ID)
+	if err != nil {
+		slog.Error("error creating access token", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	response := prochatv1.LoginResponse{
+		RefreshToken: refreshToken.String(),
+		AccessToken:  accessToken.String(),
+	}
+
+	responseString, err := protojson.Marshal(&response)
+	if err != nil {
+		slog.Error("error marshaling response", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	_, err = w.Write(responseString)
+	if err != nil {
+		slog.Error("error writing response", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
