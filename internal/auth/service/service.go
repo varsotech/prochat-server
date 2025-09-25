@@ -10,9 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"github.com/varsotech/prochat-server/internal/auth/internal/argon2"
-	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
-	"github.com/varsotech/prochat-server/internal/auth/internal/username"
+	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
+	"github.com/varsotech/prochat-server/internal/pkg/argon2"
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
 	"log/slog"
 	"net/http"
@@ -30,13 +29,13 @@ var UsernameTakenError = Error{ExternalMessage: "Username already taken", HTTPCo
 
 type Service struct {
 	postgresClient *postgres.Queries
-	authRepo       *authrepo.Repo
+	authRepo       *sessionstore.SessionStore
 }
 
 func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
 	return &Service{
 		postgresClient: postgres.New(pgClient),
-		authRepo:       authrepo.New(redisClient),
+		authRepo:       sessionstore.New(redisClient),
 	}
 }
 
@@ -151,7 +150,7 @@ type RegisterResult struct {
 func (h Service) Register(ctx context.Context, params RegisterParams) (RegisterResult, error) {
 	// TODO: Multiple attempts in case of collisions. Unlikely at the moment
 	if params.Username == nil {
-		usernameStr := username.Generate()
+		usernameStr := GenerateUsername()
 		userName, err := NewUsername(usernameStr)
 		if err != nil {
 			slog.Error("failed generating valid username", "error", err)

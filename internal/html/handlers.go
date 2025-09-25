@@ -3,19 +3,19 @@ package html
 import (
 	"errors"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
-	"github.com/varsotech/prochat-server/internal/html/internal/components"
-	"github.com/varsotech/prochat-server/internal/html/internal/pages"
+	"github.com/varsotech/prochat-server/internal/html/components"
+	"github.com/varsotech/prochat-server/internal/html/pages"
 	"log/slog"
 	"net/http"
 )
 
-func (o *Service) home(w http.ResponseWriter, r *http.Request) {
+func (o *Routes) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
 	}
 
-	_, err := o.authHTTPService.Authenticate(r)
+	_, err := o.authenticator.Authenticate(r)
 	if errors.Is(err, authhttp.UnauthorizedError) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
@@ -26,20 +26,20 @@ func (o *Service) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := o.template.ExecuteTemplate(w, "HomePage", pages.HomePage{
+	if err := o.templateExecutor.ExecuteTemplate(w, "HomePage", pages.HomePage{
 		HeadInner: components.HeadInner{
 			Title:       "Home",
 			Description: "Home",
 		},
 	}); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		slog.Error("failed to execute homepage", "error", err)
 		return
 	}
 }
 
-func (o *Service) login(w http.ResponseWriter, r *http.Request) {
-	if err := o.template.ExecuteTemplate(w, "LoginPage", pages.HomePage{
+func (o *Routes) login(w http.ResponseWriter, r *http.Request) {
+	if err := o.templateExecutor.ExecuteTemplate(w, "LoginPage", pages.HomePage{
 		HeadInner: components.HeadInner{
 			Title:       "Login",
 			Description: "Login",
@@ -51,8 +51,8 @@ func (o *Service) login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (o *Service) register(w http.ResponseWriter, r *http.Request) {
-	if err := o.template.ExecuteTemplate(w, "RegisterPage", pages.HomePage{
+func (o *Routes) register(w http.ResponseWriter, r *http.Request) {
+	if err := o.templateExecutor.ExecuteTemplate(w, "RegisterPage", pages.HomePage{
 		HeadInner: components.HeadInner{
 			Title:       "Register",
 			Description: "Register",

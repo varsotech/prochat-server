@@ -1,4 +1,4 @@
-package username
+package service
 
 import (
 	"log/slog"

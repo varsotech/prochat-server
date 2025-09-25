@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"github.com/varsotech/prochat-server/internal/html/internal/components"
+	"github.com/varsotech/prochat-server/internal/html/components"
 )
 
 type HomePage struct {
