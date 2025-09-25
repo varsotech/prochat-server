@@ -3,11 +3,9 @@ package auth
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"golang.org/x/crypto/argon2"
 	"log/slog"
-	"strconv"
 	"strings"
 )
 
@@ -93,74 +91,6 @@ func decodeHash(encodedHash string) (*Argon2Params, []byte, []byte, error) {
 	p.KeyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
-}
-
-// parseEncodedHash extracts params, salt and hash from the encoded string.
-func parseEncodedHash(encoded string) (*Argon2Params, []byte, []byte, error) {
-	parts := strings.Split(encoded, "$")
-	// parts: ["", "argon2id", "v=19", "m=...,t=...,p=...", "<salt>", "<hash>"]
-	if len(parts) != 6 {
-		return nil, nil, nil, errors.New("invalid encoded argon2id format")
-	}
-	if parts[1] != "argon2id" {
-		return nil, nil, nil, errors.New("unsupported algorithm")
-	}
-
-	// parse params in parts[3]
-	var memory uint32
-	var timeParam uint32
-	var threads uint8
-
-	paramPairs := strings.Split(parts[3], ",")
-	for _, pair := range paramPairs {
-		kv := strings.SplitN(pair, "=", 2)
-		if len(kv) != 2 {
-			return nil, nil, nil, fmt.Errorf("invalid param: %s", pair)
-		}
-		k := kv[0]
-		v := kv[1]
-		switch k {
-		case "m":
-			mem, err := strconv.ParseUint(v, 10, 32)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			memory = uint32(mem)
-		case "t":
-			t, err := strconv.ParseUint(v, 10, 32)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			timeParam = uint32(t)
-		case "p":
-			p, err := strconv.ParseUint(v, 10, 8)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			threads = uint8(p)
-		default:
-			// ignore unknown params
-		}
-	}
-
-	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	hash, err := base64.RawStdEncoding.DecodeString(parts[5])
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	params := &Argon2Params{
-		Memory:     memory,
-		Time:       timeParam,
-		Threads:    threads,
-		SaltLength: uint32(len(salt)),
-		KeyLength:  uint32(len(hash)),
-	}
-
-	return params, salt, hash, nil
 }
 
 // comparePassword verifies a password against the encoded hash (from DB).

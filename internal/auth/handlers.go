@@ -15,17 +15,17 @@ import (
 	"strings"
 )
 
-type Routes struct {
+type Handlers struct {
 	postgresClient *pgxpool.Pool
 	authRepo       *authrepo.Repo
 }
 
-func NewRoutes(postgresClient *pgxpool.Pool, redisClient *redis.Client) Routes {
+func NewHandlers(postgresClient *pgxpool.Pool, redisClient *redis.Client) Handlers {
 	authRepo := authrepo.New(redisClient)
-	return Routes{postgresClient: postgresClient, authRepo: authRepo}
+	return Handlers{postgresClient: postgresClient, authRepo: authRepo}
 }
 
-func (o Routes) Login(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	slog.Info("handling login")
 
 	body, err := io.ReadAll(r.Body)
@@ -43,7 +43,7 @@ func (o Routes) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := postgres.New(o.postgresClient)
+	queries := postgres.New(h.postgresClient)
 
 	user, err := queries.GetUserByLogin(r.Context(), req.Login)
 	if err != nil {
@@ -72,14 +72,14 @@ func (o Routes) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken, err := o.authRepo.CreateRefreshToken(r.Context(), user.ID)
+	refreshToken, err := h.authRepo.CreateRefreshToken(r.Context(), user.ID)
 	if err != nil {
 		slog.Error("error creating refresh token", "error", err, "request_uri", r.RequestURI)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
-	accessToken, err := o.authRepo.CreateAccessToken(r.Context(), user.ID)
+	accessToken, err := h.authRepo.CreateAccessToken(r.Context(), user.ID)
 	if err != nil {
 		slog.Error("error creating access token", "error", err, "request_uri", r.RequestURI)
 		http.Error(w, "", http.StatusInternalServerError)
@@ -110,7 +110,7 @@ func (o Routes) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o Routes) Register(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 	slog.Info("handling registration")
 
 	body, err := io.ReadAll(r.Body)
@@ -149,7 +149,7 @@ func (o Routes) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := postgres.New(o.postgresClient)
+	queries := postgres.New(h.postgresClient)
 
 	if req.Email == "" && req.Password == "" {
 		// If no email and password provided, anonymously register the user
@@ -194,14 +194,14 @@ func (o Routes) Register(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	refreshToken, err := o.authRepo.CreateRefreshToken(r.Context(), id)
+	refreshToken, err := h.authRepo.CreateRefreshToken(r.Context(), id)
 	if err != nil {
 		slog.Error("error creating refresh token", "error", err, "request_uri", r.RequestURI)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
-	accessToken, err := o.authRepo.CreateAccessToken(r.Context(), id)
+	accessToken, err := h.authRepo.CreateAccessToken(r.Context(), id)
 	if err != nil {
 		slog.Error("error creating access token", "error", err, "request_uri", r.RequestURI)
 		http.Error(w, "", http.StatusInternalServerError)

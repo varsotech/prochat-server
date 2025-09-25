@@ -15,7 +15,7 @@ type RefreshTokenData struct {
 }
 
 func (r *Repo) CreateRefreshToken(ctx context.Context, userId uuid.UUID) (uuid.UUID, error) {
-	const refreshTokenTTL = 24 * time.Hour * 365 // 1 year
+	const refreshTokenTTL = 24 * time.Hour * 90 // 90 days
 
 	refreshToken := uuid.New()
 

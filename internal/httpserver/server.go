@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"github.com/varsotech/prochat-server/internal/auth"
 	"log/slog"
 	"net"
 	"net/http"
@@ -27,13 +26,10 @@ func New(ctx context.Context, port string, postgresClient *pgxpool.Pool, redisCl
 	}
 }
 
-func (s Server) Serve() error {
+func (s *Server) Serve() error {
 	mux := http.NewServeMux()
 
-	authRoutes := auth.NewRoutes(s.postgresClient, s.redisClient)
-
-	mux.HandleFunc("POST /api/v1/auth/login", authRoutes.Login)
-	mux.HandleFunc("POST /api/v1/auth/register", authRoutes.Register)
+	s.registerRoutes(mux)
 
 	srv := &http.Server{
 		Addr:    ":" + s.port,

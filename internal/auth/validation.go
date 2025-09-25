@@ -45,5 +45,10 @@ func validatePassword(password string) (bool, string) {
 		return false, "Password is too short"
 	}
 
+	const maxPasswordLength = 128
+	if len(password) > maxPasswordLength {
+		return false, "Password is too long"
+	}
+
 	return true, ""
 }
