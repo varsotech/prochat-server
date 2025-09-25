@@ -8,7 +8,7 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
  * Describes the file prochat/v1/auth.proto.
  */
 export const file_prochat_v1_auth = /*@__PURE__*/
-  fileDesc("ChVwcm9jaGF0L3YxL2F1dGgucHJvdG8SCnByb2NoYXQudjEiRAoPUmVnaXN0ZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEg0KBWVtYWlsGAIgASgJEhAKCHBhc3N3b3JkGAMgASgJIi8KDExvZ2luUmVxdWVzdBINCgVsb2dpbhgBIAEoCRIQCghwYXNzd29yZBgDIAEoCUKfAQoOY29tLnByb2NoYXQudjFCCUF1dGhQcm90b1ABWjlnaXRodWIuY29tL3ZhcnNvL3Byb3RjaGF0LXNlcnZlci9nZW4vcHJvY2hhdC92MTtwcm9jaGF0djGiAgNQWFiqAgpQcm9jaGF0LlYxygIKUHJvY2hhdFxWMeICFlByb2NoYXRcVjFcR1BCTWV0YWRhdGHqAgtQcm9jaGF0OjpWMWIGcHJvdG8z");
+  fileDesc("ChVwcm9jaGF0L3YxL2F1dGgucHJvdG8SCnByb2NoYXQudjEiWgoPUmVnaXN0ZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEg0KBWVtYWlsGAIgASgJEhAKCHBhc3N3b3JkGAMgASgJEhQKDGRpc3BsYXlfbmFtZRgEIAEoCSI/ChBSZWdpc3RlclJlc3BvbnNlEhUKDXJlZnJlc2hfdG9rZW4YASABKAkSFAoMYWNjZXNzX3Rva2VuGAIgASgJIi8KDExvZ2luUmVxdWVzdBINCgVsb2dpbhgBIAEoCRIQCghwYXNzd29yZBgDIAEoCUKfAQoOY29tLnByb2NoYXQudjFCCUF1dGhQcm90b1ABWjlnaXRodWIuY29tL3ZhcnNvL3Byb3RjaGF0LXNlcnZlci9nZW4vcHJvY2hhdC92MTtwcm9jaGF0djGiAgNQWFiqAgpQcm9jaGF0LlYxygIKUHJvY2hhdFxWMeICFlByb2NoYXRcVjFcR1BCTWV0YWRhdGHqAgtQcm9jaGF0OjpWMWIGcHJvdG8z");
 
 /**
  * Describes the message prochat.v1.RegisterRequest.
@@ -18,9 +18,16 @@ export const RegisterRequestSchema = /*@__PURE__*/
   messageDesc(file_prochat_v1_auth, 0);
 
 /**
+ * Describes the message prochat.v1.RegisterResponse.
+ * Use `create(RegisterResponseSchema)` to create a new message.
+ */
+export const RegisterResponseSchema = /*@__PURE__*/
+  messageDesc(file_prochat_v1_auth, 1);
+
+/**
  * Describes the message prochat.v1.LoginRequest.
  * Use `create(LoginRequestSchema)` to create a new message.
  */
 export const LoginRequestSchema = /*@__PURE__*/
-  messageDesc(file_prochat_v1_auth, 1);
+  messageDesc(file_prochat_v1_auth, 2);
 

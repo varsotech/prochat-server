@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/varsotech/prochat-server/internal/auth"
 	"log/slog"
 	"net"
@@ -11,38 +12,40 @@ import (
 )
 
 type Server struct {
-	Ctx            context.Context
-	PostgresClient *pgxpool.Pool
-	Port           string
+	ctx            context.Context
+	postgresClient *pgxpool.Pool
+	redisClient    *redis.Client
+	port           string
 }
 
-func New(ctx context.Context, port string, postgresClient *pgxpool.Pool) *Server {
+func New(ctx context.Context, port string, postgresClient *pgxpool.Pool, redisClient *redis.Client) *Server {
 	return &Server{
-		Ctx:            ctx,
-		PostgresClient: postgresClient,
-		Port:           port,
+		ctx:            ctx,
+		postgresClient: postgresClient,
+		redisClient:    redisClient,
+		port:           port,
 	}
 }
 
 func (s Server) Serve() error {
 	mux := http.NewServeMux()
 
-	authRoutes := auth.NewRoutes(s.PostgresClient)
+	authRoutes := auth.NewRoutes(s.postgresClient, s.redisClient)
 
 	mux.HandleFunc("POST /api/v1/auth/login", authRoutes.Login)
 	mux.HandleFunc("POST /api/v1/auth/register", authRoutes.Register)
 
 	srv := &http.Server{
-		Addr:    ":" + s.Port,
+		Addr:    ":" + s.port,
 		Handler: mux,
 		BaseContext: func(listener net.Listener) context.Context {
-			return s.Ctx
+			return s.ctx
 		},
 	}
 
 	// Shutdown server when context is cancelled
 	go func() {
-		<-s.Ctx.Done()
+		<-s.ctx.Done()
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

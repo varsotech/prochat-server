@@ -13,22 +13,24 @@ import (
 )
 
 const createAnonymousUser = `-- name: CreateAnonymousUser :one
-INSERT INTO users (id, username) 
-VALUES ($1, $2) 
-RETURNING id, username, email, password_hash, created_at
+INSERT INTO users (id, username, display_name) 
+VALUES ($1, $2, $3) 
+RETURNING id, username, display_name, email, password_hash, created_at
 `
 
 type CreateAnonymousUserParams struct {
-	ID       uuid.UUID
-	Username string
+	ID          uuid.UUID
+	Username    string
+	DisplayName pgtype.Text
 }
 
 func (q *Queries) CreateAnonymousUser(ctx context.Context, arg CreateAnonymousUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createAnonymousUser, arg.ID, arg.Username)
+	row := q.db.QueryRow(ctx, createAnonymousUser, arg.ID, arg.Username, arg.DisplayName)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.DisplayName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.CreatedAt,
@@ -37,14 +39,15 @@ func (q *Queries) CreateAnonymousUser(ctx context.Context, arg CreateAnonymousUs
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, username, email, password_hash)
-VALUES ($1, $2, $3, $4)
-RETURNING id, username, email, password_hash, created_at
+INSERT INTO users (id, username, display_name, email, password_hash)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, username, display_name, email, password_hash, created_at
 `
 
 type CreateUserParams struct {
 	ID           uuid.UUID
 	Username     string
+	DisplayName  pgtype.Text
 	Email        pgtype.Text
 	PasswordHash pgtype.Text
 }
@@ -53,6 +56,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	row := q.db.QueryRow(ctx, createUser,
 		arg.ID,
 		arg.Username,
+		arg.DisplayName,
 		arg.Email,
 		arg.PasswordHash,
 	)
@@ -60,6 +64,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.DisplayName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.CreatedAt,
@@ -68,7 +73,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByLogin = `-- name: GetUserByLogin :one
-SELECT id, username, email, password_hash, created_at FROM users WHERE username = $1::string OR email = $1::string
+SELECT id, username, display_name, email, password_hash, created_at FROM users WHERE username = $1::string OR email = $1::string
 `
 
 func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error) {
@@ -77,6 +82,7 @@ func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.DisplayName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.CreatedAt,

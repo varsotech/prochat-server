@@ -5,6 +5,12 @@ message RegisterRequest {
   string username = 1;
   string email = 2;
   string password = 3;
+  string display_name = 4;
+}
+
+message RegisterResponse {
+  string refresh_token = 1;
+  string access_token = 2;
 }
 
 message LoginRequest {

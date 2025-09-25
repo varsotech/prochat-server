@@ -28,6 +28,11 @@ export declare type RegisterRequest = Message<"prochat.v1.RegisterRequest"> & {
    * @generated from field: string password = 3;
    */
   password: string;
+
+  /**
+   * @generated from field: string display_name = 4;
+   */
+  displayName: string;
 };
 
 /**
@@ -35,6 +40,27 @@ export declare type RegisterRequest = Message<"prochat.v1.RegisterRequest"> & {
  * Use `create(RegisterRequestSchema)` to create a new message.
  */
 export declare const RegisterRequestSchema: GenMessage<RegisterRequest>;
+
+/**
+ * @generated from message prochat.v1.RegisterResponse
+ */
+export declare type RegisterResponse = Message<"prochat.v1.RegisterResponse"> & {
+  /**
+   * @generated from field: string refresh_token = 1;
+   */
+  refreshToken: string;
+
+  /**
+   * @generated from field: string access_token = 2;
+   */
+  accessToken: string;
+};
+
+/**
+ * Describes the message prochat.v1.RegisterResponse.
+ * Use `create(RegisterResponseSchema)` to create a new message.
+ */
+export declare const RegisterResponseSchema: GenMessage<RegisterResponse>;
 
 /**
  * @generated from message prochat.v1.LoginRequest

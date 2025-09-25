@@ -12,6 +12,7 @@ import (
 type User struct {
 	ID           uuid.UUID
 	Username     string
+	DisplayName  pgtype.Text
 	Email        pgtype.Text
 	PasswordHash pgtype.Text
 	CreatedAt    pgtype.Timestamptz
