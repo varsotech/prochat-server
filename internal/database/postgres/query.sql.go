@@ -73,7 +73,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByLogin = `-- name: GetUserByLogin :one
-SELECT id, username, display_name, email, password_hash, created_at FROM users WHERE username = $1::string OR email = $1::string
+SELECT id, username, display_name, email, password_hash, created_at FROM users WHERE username = $1 OR email = $1
 `
 
 func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error) {

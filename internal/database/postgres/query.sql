@@ -9,4 +9,4 @@ VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: GetUserByLogin :one
-SELECT * FROM users WHERE username = @login::string OR email = @login::string;
+SELECT * FROM users WHERE username = @login OR email = @login;
