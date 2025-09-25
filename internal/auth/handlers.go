@@ -15,11 +15,6 @@ import (
 	"strings"
 )
 
-const (
-	accessTokenMaxAge  int = 60 * 60 * 24      // 24 hours
-	refreshTokenMaxAge int = 60 * 60 * 24 * 90 // 90 Days
-)
-
 type Handlers struct {
 	postgresClient *pgxpool.Pool
 	authRepo       *authrepo.Repo
