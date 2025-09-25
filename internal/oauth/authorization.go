@@ -2,14 +2,13 @@ package oauth
 
 import (
 	"errors"
-	"log/slog"
-	"net/http"
-	"time"
-
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
 	"github.com/varsotech/prochat-server/internal/html/components"
 	"github.com/varsotech/prochat-server/internal/html/pages"
 	"github.com/varsotech/prochat-server/internal/oauth/clientmetadata"
+	"log/slog"
+	"net/http"
+	"time"
 )
 
 func (o *Routes) authorizeHandler(w http.ResponseWriter, r *http.Request) {

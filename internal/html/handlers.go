@@ -2,12 +2,11 @@ package html
 
 import (
 	"errors"
-	"log/slog"
-	"net/http"
-
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
 	"github.com/varsotech/prochat-server/internal/html/components"
 	"github.com/varsotech/prochat-server/internal/html/pages"
+	"log/slog"
+	"net/http"
 )
 
 func (o *Routes) home(w http.ResponseWriter, r *http.Request) {

@@ -3,10 +3,6 @@ package prochat
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
-	"os/signal"
-
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
@@ -14,7 +10,11 @@ import (
 	"github.com/varsotech/prochat-server/internal/oauth"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
+	"github.com/varsotech/prochat-server/internal/pkg/s3util"
 	"golang.org/x/sync/errgroup"
+	"log/slog"
+	"os"
+	"os/signal"
 )
 
 func Run() error {
@@ -51,6 +51,12 @@ func Run() error {
 		return err
 	}
 
+	s3Client, err := s3util.NewClient(ctx, os.Getenv("AWS_S3_BUCKET"))
+	if err != nil {
+		slog.Error("failed initializing s3 client", "error", err)
+		return err
+	}
+
 	htmlTemplate, err := html.NewTemplate()
 	if err != nil {
 		slog.Error("failed initializing html template", "error", err)
@@ -60,7 +66,7 @@ func Run() error {
 	authenticator := authhttp.NewAuthenticator(redisClient)
 	authHttpService := authhttp.New(postgresClient, redisClient, authenticator)
 	htmlRoutes := html.NewRoutes(htmlTemplate, authenticator)
-	oauthHttpRoutes := oauth.NewRoutes(redisClient, authenticator, httputil.NewClient(), htmlTemplate)
+	oauthHttpRoutes := oauth.NewRoutes(redisClient, s3Client, authenticator, httputil.NewClient(), htmlTemplate)
 	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpService, oauthHttpRoutes, htmlRoutes)
 
 	// Each routine must gracefully exit on context cancellation

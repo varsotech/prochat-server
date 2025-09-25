@@ -2,14 +2,13 @@ package http
 
 import (
 	"errors"
-	"io"
-	"log/slog"
-	"net/http"
-
 	"github.com/varsotech/prochat-server/internal/auth/service"
 	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
 	"google.golang.org/protobuf/encoding/protojson"
+	"io"
+	"log/slog"
+	"net/http"
 )
 
 const (

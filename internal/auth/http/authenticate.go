@@ -3,11 +3,10 @@ package http
 import (
 	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
+	"net/http"
 )
 
 var UnauthorizedError = fmt.Errorf("authentication is unauthorized")
