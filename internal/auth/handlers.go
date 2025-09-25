@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+const (
+	accessTokenMaxAge  int = 60 * 60 * 24      // 24 hours
+	refreshTokenMaxAge int = 60 * 60 * 24 * 90 // 90 Days
+)
+
 type Handlers struct {
 	postgresClient *pgxpool.Pool
 	authRepo       *authrepo.Repo
@@ -86,26 +91,11 @@ func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := prochatv1.LoginResponse{
-		RefreshToken: refreshToken.String(),
-		AccessToken:  accessToken.String(),
-	}
+	accessTokenCookie := createCookie("accessToken", accessToken.String(), "/", accessTokenMaxAge)
+	refreshTokenCookie := createCookie("refreshToken", refreshToken.String(), "/auth/refresh", refreshTokenMaxAge)
 
-	responseString, err := protojson.Marshal(&response)
-	if err != nil {
-		slog.Error("error marshaling response", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-
-	_, err = w.Write(responseString)
-	if err != nil {
-		slog.Error("error writing response", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -208,27 +198,11 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := prochatv1.RegisterResponse{
-		RefreshToken: refreshToken.String(),
-		AccessToken:  accessToken.String(),
-	}
+	accessTokenCookie := createCookie("accessToken", accessToken.String(), "/", accessTokenMaxAge)
+	refreshTokenCookie := createCookie("refreshToken", refreshToken.String(), "/auth/refresh", refreshTokenMaxAge)
 
-	responseString, err := protojson.Marshal(&response)
-	if err != nil {
-		slog.Error("error marshaling response", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-
-	_, err = w.Write(responseString)
-	if err != nil {
-		slog.Error("error writing response", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
 
 	w.WriteHeader(http.StatusOK)
-	return
 }
