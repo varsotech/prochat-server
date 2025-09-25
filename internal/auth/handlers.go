@@ -77,22 +77,21 @@ func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken, err := h.authRepo.CreateRefreshToken(r.Context(), user.ID)
+	// TODO: DRY!
+	accessToken, refreshToken := createTokenPair(user.ID)
+
+	err = h.authRepo.StoreToken(r.Context(), accessToken.authString(), accessToken.UserId, accessToken.TTL)
 	if err != nil {
-		slog.Error("error creating refresh token", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	accessToken, err := h.authRepo.CreateAccessToken(r.Context(), user.ID)
+	err = h.authRepo.StoreToken(r.Context(), refreshToken.authString(), refreshToken.UserId, refreshToken.TTL)
 	if err != nil {
-		slog.Error("error creating access token", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	accessTokenCookie := createCookie("accessToken", accessToken.String(), "/", accessTokenMaxAge)
-	refreshTokenCookie := createCookie("refreshToken", refreshToken.String(), "/auth/refresh", refreshTokenMaxAge)
+	accessTokenCookie := createCookie("accessToken", accessToken.Identifier, "/", accessTokenMaxAge)
+	refreshTokenCookie := createCookie("refreshToken", refreshToken.Identifier, "/auth/refresh", refreshTokenMaxAge)
 
 	http.SetCookie(w, &accessTokenCookie)
 	http.SetCookie(w, &refreshTokenCookie)
@@ -184,22 +183,21 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	refreshToken, err := h.authRepo.CreateRefreshToken(r.Context(), id)
+	// TODO: DRY!
+	accessToken, refreshToken := createTokenPair(id)
+
+	err = h.authRepo.StoreToken(r.Context(), accessToken.authString(), accessToken.UserId, accessToken.TTL)
 	if err != nil {
-		slog.Error("error creating refresh token", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	accessToken, err := h.authRepo.CreateAccessToken(r.Context(), id)
+	err = h.authRepo.StoreToken(r.Context(), refreshToken.authString(), refreshToken.UserId, refreshToken.TTL)
 	if err != nil {
-		slog.Error("error creating access token", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		slog.Error("error storing token", "error", err, "request_uri", r.RequestURI)
 	}
 
-	accessTokenCookie := createCookie("accessToken", accessToken.String(), "/", accessTokenMaxAge)
-	refreshTokenCookie := createCookie("refreshToken", refreshToken.String(), "/auth/refresh", refreshTokenMaxAge)
+	accessTokenCookie := createCookie("accessToken", accessToken.Identifier, "/", accessTokenMaxAge)
+	refreshTokenCookie := createCookie("refreshToken", refreshToken.Identifier, "/auth/refresh", refreshTokenMaxAge)
 
 	http.SetCookie(w, &accessTokenCookie)
 	http.SetCookie(w, &refreshTokenCookie)
