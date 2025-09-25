@@ -15,7 +15,7 @@ type AccessTokenData struct {
 }
 
 func (r *Repo) CreateAccessToken(ctx context.Context, userId uuid.UUID) (uuid.UUID, error) {
-	const accessTokenTTL = 1 * time.Hour
+	const accessTokenTTL = 24 * time.Hour
 
 	accessToken := uuid.New()
 
