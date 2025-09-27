@@ -2,19 +2,26 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	prochatv1 "github.com/varsotech/prochat-server/gen/prochat/v1"
-	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
 	"github.com/varsotech/prochat-server/internal/database/postgres"
+	"github.com/varsotech/prochat-server/internal/database/redis/authrepo"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"log/slog"
 	"net/http"
 	"strings"
+)
+
+const (
+	accessTokenCookieName  = "prochat_accesstoken"
+	refreshTokenCookieName = "prochat_refreshtoken"
 )
 
 type Handlers struct {
@@ -31,21 +38,34 @@ func NewHandlers(postgresConnectionPool *pgxpool.Pool, redisClient *redis.Client
 func (h Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 	slog.Info("handling refresh")
 
-	//refreshTokenCookie, err := r.Cookie("refreshToken")
-	//if err != nil {
-	//	slog.Error("error getting refreshToken cookie", err)
-	//	http.Error(w, "error getting cookie", http.StatusUnauthorized)
-	//	return
-	//}
+	refreshTokenCookie, err := r.Cookie(refreshTokenCookieName)
+	if err != nil {
+		slog.Error("error getting refreshToken cookie", "error", err)
+		http.Error(w, "error getting cookie", http.StatusUnauthorized)
+		return
+	}
 
-	// TODO: don't use uuid.MustParse(string)
-	//refreshTokenUserId, _, err := h.authRepo.GetUserIdFromRefreshToken(r.Context(), uuid.MustParse(refreshTokenCookie.Value))
-	//if err != nil {
-	//	slog.Error("error getting refreshToken userId", err)
-	//	http.Error(w, "error getting refreshToken userId", http.StatusUnauthorized)
-	//	return
-	//}
+	userId, found, err := h.authRepo.GetUserIdFromRefreshToken(r.Context(), refreshTokenCookie.Value)
+	if err != nil {
+		slog.Error("error getting refresh token user id", "error", err)
+		http.Error(w, "error getting refresh token user id", http.StatusInternalServerError)
+		return
+	}
 
+	if !found {
+		slog.Error("refresh token not found")
+		http.Error(w, "refresh token not found", http.StatusUnauthorized)
+		return
+	}
+
+	accessToken, refreshToken, err := h.authRepo.RefreshTokenPair(r.Context(), userId)
+	if err != nil {
+		slog.Error("error refreshing access token", "error", err)
+		http.Error(w, "error refreshing access token", http.StatusInternalServerError)
+		return
+	}
+
+	h.setTokenPairCookies(w, accessToken, refreshToken)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -53,7 +73,7 @@ func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -61,46 +81,43 @@ func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
 	if err != nil {
 		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusBadRequest)
+		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.postgresClient.GetUserByLogin(r.Context(), req.Login)
 	if err != nil {
 		slog.Info("user not found", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusNotFound)
+		http.Error(w, "Invalid credentials", http.StatusNotFound)
 		return
 	}
 
 	if !user.PasswordHash.Valid {
 		// TODO: Test this
 		slog.Info("no password found for account", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusUnauthorized)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
 	passwordsMatch, err := comparePassword(req.Password, user.PasswordHash.String)
 	if err != nil {
 		slog.Error("failed comparing passwords", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	if !passwordsMatch {
 		slog.Info("wrong password", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusUnauthorized)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
-	accessTokenCookie, refreshTokenCookie, err := h.generateTokenPairCookies(r.Context(), user.ID)
+	err = h.issueAndSetTokenPairCookies(r.Context(), w, user.ID)
 	if err != nil {
 		slog.Error("error generating token pair cookies", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
-
-	http.SetCookie(w, accessTokenCookie)
-	http.SetCookie(w, refreshTokenCookie)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -111,7 +128,7 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -119,7 +136,7 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
 	if err != nil {
 		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusBadRequest)
+		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
@@ -140,7 +157,7 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		slog.Error("error generating uuid", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -152,7 +169,7 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			slog.Error("error creating anonymous user", "error", err, "request_uri", r.RequestURI)
-			http.Error(w, "", http.StatusInternalServerError)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
 		}
 	} else {
 		// Email and password provided, register user
@@ -181,39 +198,59 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 			Email:        pgtype.Text{String: req.Email, Valid: true},
 			PasswordHash: pgtype.Text{String: argon2idPassword, Valid: true},
 		})
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			if pgErr.ConstraintName == "users_username_key" {
+				http.Error(w, "Username already taken", http.StatusBadRequest)
+				return
+			}
+
+			if pgErr.ConstraintName == "users_email_key" {
+				http.Error(w, "Email already taken", http.StatusBadRequest)
+				return
+			}
+
+			// Fallback to less specific error, shouldn't reach here
+			slog.Error("unknown constraint name, falling back to generic error message", "error", err, "request_uri", r.RequestURI)
+			http.Error(w, "Username or email already taken", http.StatusBadRequest)
+			return
+		}
 		if err != nil {
-			slog.Error("error creating anonymous user", "error", err, "request_uri", r.RequestURI)
-			http.Error(w, "", http.StatusInternalServerError)
+			slog.Error("error creating user", "error", err, "request_uri", r.RequestURI)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	accessTokenCookie, refreshTokenCookie, err := h.generateTokenPairCookies(r.Context(), id)
+	err = h.issueAndSetTokenPairCookies(r.Context(), w, id)
 	if err != nil {
 		slog.Error("error generating token pair cookies", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
-
-	http.SetCookie(w, accessTokenCookie)
-	http.SetCookie(w, refreshTokenCookie)
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h Handlers) generateTokenPairCookies(ctx context.Context, id uuid.UUID) (*http.Cookie, *http.Cookie, error) {
+func (h Handlers) issueAndSetTokenPairCookies(ctx context.Context, w http.ResponseWriter, id uuid.UUID) error {
 	accessToken, err := h.authRepo.IssueAccessToken(ctx, id)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed issuing access token")
+		return fmt.Errorf("failed issuing access token")
 	}
 
 	refreshToken, err := h.authRepo.IssueRefreshToken(ctx, id, accessToken)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed issuing refresh token")
+		return fmt.Errorf("failed issuing refresh token")
 	}
 
-	accessTokenCookie := createCookie("accessToken", accessToken.String(), "/", authrepo.AccessTokenMaxAge)
-	refreshTokenCookie := createCookie("refreshToken", refreshToken.String(), "/api/v1/auth/refresh", authrepo.RefreshTokenMaxAge)
+	h.setTokenPairCookies(w, accessToken, refreshToken)
+	return nil
+}
 
-	return &accessTokenCookie, &refreshTokenCookie, nil
+func (h Handlers) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
+	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, "/", authrepo.AccessTokenMaxAge)
+	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, "/api/v1/auth/refresh", authrepo.RefreshTokenMaxAge)
+
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
 }

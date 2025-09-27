@@ -72,7 +72,7 @@ export declare type LoginRequest = Message<"prochat.v1.LoginRequest"> & {
   login: string;
 
   /**
-   * @generated from field: string password = 3;
+   * @generated from field: string password = 2;
    */
   password: string;
 };

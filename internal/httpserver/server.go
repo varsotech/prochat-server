@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
@@ -29,7 +30,10 @@ func New(ctx context.Context, port string, postgresClient *pgxpool.Pool, redisCl
 func (s *Server) Serve() error {
 	mux := http.NewServeMux()
 
-	s.registerRoutes(mux)
+	err := s.registerRoutes(mux)
+	if err != nil {
+		return fmt.Errorf("failed to register routes: %w", err)
+	}
 
 	srv := &http.Server{
 		Addr:    ":" + s.port,
@@ -52,6 +56,6 @@ func (s *Server) Serve() error {
 		}
 	}()
 
-	slog.Info("http server is ready to accept connections")
+	slog.Info("http server is ready to accept connections", "port", s.port)
 	return srv.ListenAndServe()
 }

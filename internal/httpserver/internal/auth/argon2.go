@@ -25,15 +25,6 @@ var defaultParams = &Argon2Params{
 	KeyLength:  32,
 }
 
-func generateRandomBytes(n uint32) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
 // hashPassword generates an argon2id hash and returns an encoded string that contains all params.
 // Format: $argon2id$v=19$m=<memory>,t=<time>,p=<threads>$<salt_b64>$<hash_b64>
 func hashPassword(password string, p *Argon2Params) (string, error) {
@@ -41,10 +32,8 @@ func hashPassword(password string, p *Argon2Params) (string, error) {
 		p = defaultParams
 	}
 
-	salt, err := generateRandomBytes(p.SaltLength)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate salt: %v", err)
-	}
+	salt := make([]byte, p.SaltLength)
+	_, _ = rand.Read(salt)
 
 	hash := argon2.IDKey([]byte(password), salt, p.Time, p.Memory, p.Threads, p.KeyLength)
 
