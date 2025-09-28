@@ -30,10 +30,11 @@ type Service struct {
 	authRepo       *authrepo.Repo
 }
 
-func New(postgresConnectionPool *pgxpool.Pool, redisClient *redis.Client) Service {
-	postgresClient := postgres.New(postgresConnectionPool)
-	authRepo := authrepo.New(redisClient)
-	return Service{postgresClient: postgresClient, authRepo: authRepo}
+func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
+	return &Service{
+		postgresClient: postgres.New(pgClient),
+		authRepo:       authrepo.New(redisClient),
+	}
 }
 
 //func (h Handlers) LoginProtectionMiddleware(next http.Handler) http.Handler {
@@ -200,7 +201,7 @@ func (h Service) Register(ctx context.Context, params RegisterParams) (RegisterR
 			}
 
 			// Fallback to less specific error, shouldn't reach here
-			return RegisterResult{}, fmt.Errorf("email or password already taken: %w: %w", UsernameTakenError, err)
+			return RegisterResult{}, fmt.Errorf("email or username already taken: %w: %w", UsernameOrEmailTakenError, err)
 		}
 		if err != nil {
 			return RegisterResult{}, fmt.Errorf("failed creating user: %w: %w", InternalError, err)

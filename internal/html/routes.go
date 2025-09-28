@@ -3,7 +3,7 @@ package html
 import (
 	"embed"
 	"fmt"
-	"github.com/varsotech/prochat-server/internal/html/pages"
+	"github.com/varsotech/prochat-server/internal/html/internal/pages"
 	"html/template"
 	"net/http"
 )
@@ -23,11 +23,13 @@ func NewRoutes() (*Routes, error) {
 	}, nil
 }
 
-//go:embed internal/html/components/*.gohtml internal/html/pages/*.gohtml
+//go:embed html/components/*.gohtml html/pages/*.gohtml
 var templateFS embed.FS
 
 func (o *Routes) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /login", pages.Login{Template: o.template}.Handler)
 	mux.HandleFunc("GET /register", pages.Register{Template: o.template}.Handler)
+
+	// TODO: Protect route with access token cookie
 	mux.HandleFunc("GET /", pages.Home{Template: o.template}.Handler)
 }

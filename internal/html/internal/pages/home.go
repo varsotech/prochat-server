@@ -1,25 +1,25 @@
 package pages
 
 import (
-	"github.com/varsotech/prochat-server/internal/httpserver/internal/html/components"
+	"github.com/varsotech/prochat-server/internal/html/internal/components"
 	"html/template"
 	"log/slog"
 	"net/http"
 )
 
-type Register struct {
+type Home struct {
 	Template *template.Template
 }
 
-type RegisterPage struct {
+type HomePage struct {
 	HeadInner components.HeadInner
 }
 
-func (h Register) Handler(w http.ResponseWriter, r *http.Request) {
-	if err := h.Template.ExecuteTemplate(w, "RegisterPage", LoginPage{
+func (h Home) Handler(w http.ResponseWriter, r *http.Request) {
+	if err := h.Template.ExecuteTemplate(w, "HomePage", LoginPage{
 		HeadInner: components.HeadInner{
-			Title:       "Register",
-			Description: "Register",
+			Title:       "Home",
+			Description: "Home",
 		},
 	}); err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

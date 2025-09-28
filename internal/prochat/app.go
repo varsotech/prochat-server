@@ -42,7 +42,7 @@ func Run() error {
 
 	errGroup, ctx := errgroup.WithContext(ctx)
 
-	authRoutes := authhttp.NewRoutes()
+	authRoutes := authhttp.NewRoutes(postgresClient, redisClient)
 	htmlRoutes, err := html.NewRoutes()
 	if err != nil {
 		slog.Error("error initializing html routes", "error", err)
