@@ -85,7 +85,7 @@ func (r *Repo) GetUserIdFromRefreshToken(ctx context.Context, refreshToken strin
 		return uuid.Nil, false, nil
 	}
 	if err != nil {
-		return uuid.Nil, false, fmt.Errorf("failed to get access token: %w", err)
+		return uuid.Nil, false, fmt.Errorf("failed to get refresh token: %w", err)
 	}
 
 	var refreshTokenData RefreshTokenData
@@ -95,6 +95,24 @@ func (r *Repo) GetUserIdFromRefreshToken(ctx context.Context, refreshToken strin
 	}
 
 	return refreshTokenData.UserId, true, nil
+}
+
+func (r *Repo) GetUserIdFromAccessToken(ctx context.Context, accessToken string) (uuid.UUID, bool, error) {
+	dataStr, err := r.redisClient.Get(ctx, r.formatAccessToken(accessToken)).Result()
+	if errors.Is(err, redis.Nil) {
+		return uuid.Nil, false, nil
+	}
+	if err != nil {
+		return uuid.Nil, false, fmt.Errorf("failed to get access token: %w", err)
+	}
+
+	var accessTokenData AccessTokenData
+	err = json.Unmarshal([]byte(dataStr), &accessTokenData)
+	if err != nil {
+		return uuid.Nil, false, fmt.Errorf("failed to unmarshal refresh token data: %w", err)
+	}
+
+	return accessTokenData.UserId, true, nil
 }
 
 // RefreshTokenPair issues new access and refresh tokens, then deletes the old access and refresh token.

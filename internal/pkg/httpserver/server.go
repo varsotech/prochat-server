@@ -2,37 +2,33 @@ package httpserver
 
 import (
 	"context"
-	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"net"
 	"net/http"
 	"time"
 )
 
-type Server struct {
-	ctx            context.Context
-	postgresClient *pgxpool.Pool
-	redisClient    *redis.Client
-	port           string
+type Registrar interface {
+	RegisterRoutes(mux *http.ServeMux)
 }
 
-func New(ctx context.Context, port string, postgresClient *pgxpool.Pool, redisClient *redis.Client) *Server {
+type Server struct {
+	ctx  context.Context
+	port string
+}
+
+func New(ctx context.Context, port string) *Server {
 	return &Server{
-		ctx:            ctx,
-		postgresClient: postgresClient,
-		redisClient:    redisClient,
-		port:           port,
+		ctx:  ctx,
+		port: port,
 	}
 }
 
-func (s *Server) Serve() error {
+func (s *Server) Serve(registrars ...Registrar) error {
 	mux := http.NewServeMux()
 
-	err := s.registerRoutes(mux)
-	if err != nil {
-		return fmt.Errorf("failed to register routes: %w", err)
+	for _, reg := range registrars {
+		reg.RegisterRoutes(mux)
 	}
 
 	srv := &http.Server{

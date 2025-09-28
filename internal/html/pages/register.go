@@ -7,19 +7,19 @@ import (
 	"net/http"
 )
 
-type Login struct {
-	TemplateManager *template.Template
+type Register struct {
+	Template *template.Template
 }
 
-type LoginPage struct {
+type RegisterPage struct {
 	HeadInner components.HeadInner
 }
 
-func (h Login) Handler(w http.ResponseWriter, r *http.Request) {
-	if err := h.TemplateManager.ExecuteTemplate(w, "LoginPage", LoginPage{
+func (h Register) Handler(w http.ResponseWriter, r *http.Request) {
+	if err := h.Template.ExecuteTemplate(w, "RegisterPage", LoginPage{
 		HeadInner: components.HeadInner{
-			Title:       "Login",
-			Description: "Login",
+			Title:       "Register",
+			Description: "Register",
 		},
 	}); err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

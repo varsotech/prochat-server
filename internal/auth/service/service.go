@@ -1,4 +1,4 @@
-package auth
+package http
 
 import (
 	"context"
@@ -9,9 +9,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	prochatv1 "github.com/varsotech/prochat-server/gen/prochat/v1"
-	"github.com/varsotech/prochat-server/internal/database/postgres"
-	"github.com/varsotech/prochat-server/internal/database/redis/authrepo"
+	"github.com/varsotech/prochat-server/internal/auth/internal/argon2"
+	"github.com/varsotech/prochat-server/internal/auth/internal/username"
+	"github.com/varsotech/prochat-server/internal/auth/internal/validation"
+	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
+	"github.com/varsotech/prochat-server/internal/pkg/postgres"
+	"github.com/varsotech/prochat-server/internal/pkg/redis/authrepo"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"log/slog"
@@ -34,6 +37,34 @@ func NewHandlers(postgresConnectionPool *pgxpool.Pool, redisClient *redis.Client
 	authRepo := authrepo.New(redisClient)
 	return Handlers{postgresClient: postgresClient, authRepo: authRepo}
 }
+
+//func (h Handlers) LoginProtectionMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		accessTokenCookie, err := r.Cookie(accessTokenCookieName)
+//		if errors.Is(err, http.ErrNoCookie) {
+//			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+//		}
+//		if err != nil {
+//			slog.Error("error getting access token cookie", "error", err)
+//			http.Error(w, "error getting cookie", http.StatusUnauthorized)
+//			return
+//		}
+//
+//		userId, found, err := h.authRepo.GetUserIdFromAccessToken(r.Context(), accessTokenCookie.Value)
+//		if err != nil {
+//			slog.Error("error getting user id from access token", "error", err)
+//			http.Error(w, "Internal error", http.StatusInternalServerError)
+//			return
+//		}
+//
+//		if !found {
+//			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+//			return
+//		}
+//
+//		next.ServeHTTP(w, r)
+//	})
+//}
 
 func (h Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 	slog.Info("handling refresh")
@@ -99,7 +130,7 @@ func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordsMatch, err := comparePassword(req.Password, user.PasswordHash.String)
+	passwordsMatch, err := argon2.Compare(req.Password, user.PasswordHash.String)
 	if err != nil {
 		slog.Error("failed comparing passwords", "error", err, "request_uri", r.RequestURI)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -142,13 +173,13 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: Multiple attempts in case of collisions. Unlikely at the moment
 	if req.Username == "" {
-		req.Username = generateUsername()
+		req.Username = username.Generate()
 	}
 
 	// Force username to be lowercase
 	req.Username = strings.ToLower(req.Username)
 
-	if isValid, msg := validateUsername(req.Username); !isValid {
+	if isValid, msg := validation.ValidateUsername(req.Username); !isValid {
 		slog.Info(msg, "error", err, "request_uri", r.RequestURI)
 		http.Error(w, msg, http.StatusBadRequest)
 		return
@@ -173,19 +204,19 @@ func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Email and password provided, register user
-		if isValid, msg := validateEmail(req.Email); !isValid {
+		if isValid, msg := validation.ValidateEmail(req.Email); !isValid {
 			slog.Info(msg, "error", err, "request_uri", r.RequestURI)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
 
-		if isValid, msg := validatePassword(req.Password); !isValid {
+		if isValid, msg := validation.ValidatePassword(req.Password); !isValid {
 			slog.Info(msg, "error", err, "request_uri", r.RequestURI)
 			http.Error(w, msg, http.StatusBadRequest)
 			return
 		}
 
-		argon2idPassword, err := hashPassword(req.Password, nil)
+		argon2idPassword, err := argon2.Hash(req.Password, nil)
 		if err != nil {
 			slog.Error("error hashing password", "error", err, "request_uri", r.RequestURI)
 			http.Error(w, "", http.StatusInternalServerError)
