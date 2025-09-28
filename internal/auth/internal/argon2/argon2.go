@@ -1,4 +1,4 @@
-package auth
+package argon2
 
 import (
 	"crypto/rand"
@@ -25,9 +25,9 @@ var defaultParams = &Argon2Params{
 	KeyLength:  32,
 }
 
-// hashPassword generates an argon2id hash and returns an encoded string that contains all params.
+// Hash generates an argon2id hash and returns an encoded string that contains all params.
 // Format: $argon2id$v=19$m=<memory>,t=<time>,p=<threads>$<salt_b64>$<hash_b64>
-func hashPassword(password string, p *Argon2Params) (string, error) {
+func Hash(password string, p *Argon2Params) (string, error) {
 	if p == nil {
 		p = defaultParams
 	}
@@ -44,6 +44,27 @@ func hashPassword(password string, p *Argon2Params) (string, error) {
 		argon2.Version, p.Memory, p.Time, p.Threads, b64Salt, b64Hash)
 
 	return encoded, nil
+}
+
+// Compare verifies a password against the encoded hash (from DB).
+func Compare(password string, encodedHash string) (bool, error) {
+	params, salt, expectedHash, err := decodeHash(encodedHash)
+	if err != nil {
+		return false, err
+	}
+
+	computedHash := argon2.IDKey([]byte(password), salt, params.Time, params.Memory, params.Threads, params.KeyLength)
+
+	// constant time compare
+	if len(computedHash) != len(expectedHash) {
+		slog.Error("unexpected hash length computed")
+		return false, nil
+	}
+	var diff byte
+	for i := 0; i < len(computedHash); i++ {
+		diff |= computedHash[i] ^ expectedHash[i]
+	}
+	return diff == 0, nil
 }
 
 func decodeHash(encodedHash string) (*Argon2Params, []byte, []byte, error) {
@@ -80,25 +101,4 @@ func decodeHash(encodedHash string) (*Argon2Params, []byte, []byte, error) {
 	p.KeyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
-}
-
-// comparePassword verifies a password against the encoded hash (from DB).
-func comparePassword(password string, encodedHash string) (bool, error) {
-	params, salt, expectedHash, err := decodeHash(encodedHash)
-	if err != nil {
-		return false, err
-	}
-
-	computedHash := argon2.IDKey([]byte(password), salt, params.Time, params.Memory, params.Threads, params.KeyLength)
-
-	// constant time compare
-	if len(computedHash) != len(expectedHash) {
-		slog.Error("unexpected hash length computed")
-		return false, nil
-	}
-	var diff byte
-	for i := 0; i < len(computedHash); i++ {
-		diff |= computedHash[i] ^ expectedHash[i]
-	}
-	return diff == 0, nil
 }

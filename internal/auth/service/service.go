@@ -1,4 +1,4 @@
-package http
+package service
 
 import (
 	"context"
@@ -11,31 +11,29 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/varsotech/prochat-server/internal/auth/internal/argon2"
 	"github.com/varsotech/prochat-server/internal/auth/internal/username"
-	"github.com/varsotech/prochat-server/internal/auth/internal/validation"
-	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
 	"github.com/varsotech/prochat-server/internal/pkg/redis/authrepo"
-	"google.golang.org/protobuf/encoding/protojson"
-	"io"
 	"log/slog"
 	"net/http"
-	"strings"
 )
 
-const (
-	accessTokenCookieName  = "prochat_accesstoken"
-	refreshTokenCookieName = "prochat_refreshtoken"
-)
+var InternalError = Error{ExternalMessage: "Internal error", HTTPCode: http.StatusInternalServerError}
+var UnauthorizedError = Error{ExternalMessage: "Internal error", HTTPCode: http.StatusInternalServerError}
+var EmailNotProvided = Error{ExternalMessage: "Email not provided", HTTPCode: http.StatusBadRequest}
+var PasswordNotProvided = Error{ExternalMessage: "Password not provided", HTTPCode: http.StatusBadRequest}
+var UsernameTakenError = Error{ExternalMessage: "Username already taken", HTTPCode: http.StatusConflict}
+var EmailTakenError = Error{ExternalMessage: "Email already taken", HTTPCode: http.StatusConflict}
+var UsernameOrEmailTakenError = Error{ExternalMessage: "Username or email already taken", HTTPCode: http.StatusConflict}
 
-type Handlers struct {
+type Service struct {
 	postgresClient *postgres.Queries
 	authRepo       *authrepo.Repo
 }
 
-func NewHandlers(postgresConnectionPool *pgxpool.Pool, redisClient *redis.Client) Handlers {
+func New(postgresConnectionPool *pgxpool.Pool, redisClient *redis.Client) Service {
 	postgresClient := postgres.New(postgresConnectionPool)
 	authRepo := authrepo.New(redisClient)
-	return Handlers{postgresClient: postgresClient, authRepo: authRepo}
+	return Service{postgresClient: postgresClient, authRepo: authRepo}
 }
 
 //func (h Handlers) LoginProtectionMiddleware(next http.Handler) http.Handler {
@@ -66,222 +64,170 @@ func NewHandlers(postgresConnectionPool *pgxpool.Pool, redisClient *redis.Client
 //	})
 //}
 
-func (h Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
-	slog.Info("handling refresh")
+type RefreshResult struct {
+	AccessToken  string
+	RefreshToken string
+}
 
-	refreshTokenCookie, err := r.Cookie(refreshTokenCookieName)
+func (h Service) Refresh(ctx context.Context, refreshToken string) (RefreshResult, error) {
+	userId, found, err := h.authRepo.GetUserIdFromRefreshToken(ctx, refreshToken)
 	if err != nil {
-		slog.Error("error getting refreshToken cookie", "error", err)
-		http.Error(w, "error getting cookie", http.StatusUnauthorized)
-		return
-	}
-
-	userId, found, err := h.authRepo.GetUserIdFromRefreshToken(r.Context(), refreshTokenCookie.Value)
-	if err != nil {
-		slog.Error("error getting refresh token user id", "error", err)
-		http.Error(w, "error getting refresh token user id", http.StatusInternalServerError)
-		return
+		return RefreshResult{}, fmt.Errorf("failed to get user id from refresh token: %w: %w", InternalError, err)
 	}
 
 	if !found {
-		slog.Error("refresh token not found")
-		http.Error(w, "refresh token not found", http.StatusUnauthorized)
-		return
+		return RefreshResult{}, fmt.Errorf("refresh token not found: %w", UnauthorizedError)
 	}
 
-	accessToken, refreshToken, err := h.authRepo.RefreshTokenPair(r.Context(), userId)
+	accessToken, refreshToken, err := h.authRepo.RefreshTokenPair(ctx, userId)
 	if err != nil {
-		slog.Error("error refreshing access token", "error", err)
-		http.Error(w, "error refreshing access token", http.StatusInternalServerError)
-		return
+		return RefreshResult{}, fmt.Errorf("failed refresh token pair: %w: %w", InternalError, err)
 	}
 
-	h.setTokenPairCookies(w, accessToken, refreshToken)
-	w.WriteHeader(http.StatusOK)
+	return RefreshResult{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
-func (h Handlers) Login(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
+type LoginParams struct {
+	Login    Login
+	Password Password
+}
 
-	var req prochatv1.LoginRequest
-	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
-	if err != nil {
-		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
+type LoginResult struct {
+	AccessToken  string
+	RefreshToken string
+}
 
-	user, err := h.postgresClient.GetUserByLogin(r.Context(), req.Login)
+func (h Service) Login(ctx context.Context, params LoginParams) (LoginResult, error) {
+	user, err := h.postgresClient.GetUserByLogin(ctx, string(params.Login))
 	if err != nil {
-		slog.Info("user not found", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Invalid credentials", http.StatusNotFound)
-		return
+		// TODO: Return internal error for actual failure here by parsing the error
+		return LoginResult{}, fmt.Errorf("failed getting user by login: %w: %w", UnauthorizedError, err)
 	}
 
 	if !user.PasswordHash.Valid {
-		// TODO: Test this
-		slog.Info("no password found for account", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-		return
+		return LoginResult{}, fmt.Errorf("no password set for user: %w", UnauthorizedError)
 	}
 
-	passwordsMatch, err := argon2.Compare(req.Password, user.PasswordHash.String)
+	passwordsMatch, err := argon2.Compare(string(params.Password), user.PasswordHash.String)
 	if err != nil {
-		slog.Error("failed comparing passwords", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+		return LoginResult{}, fmt.Errorf("failed comparing passwords for user: %w: %w", InternalError, err)
 	}
 
 	if !passwordsMatch {
-		slog.Info("wrong password", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-		return
+		return LoginResult{}, fmt.Errorf("incorrect password: %w", UnauthorizedError)
 	}
 
-	err = h.issueAndSetTokenPairCookies(r.Context(), w, user.ID)
+	accessToken, refreshToken, err := h.issueTokenPair(ctx, user.ID)
 	if err != nil {
-		slog.Error("error generating token pair cookies", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+		return LoginResult{}, fmt.Errorf("failed issuing token pair for login: %w: %w", InternalError, err)
 	}
 
-	w.WriteHeader(http.StatusOK)
+	return LoginResult{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
-func (h Handlers) Register(w http.ResponseWriter, r *http.Request) {
-	slog.Info("handling registration")
+type RegisterParams struct {
+	DisplayName DisplayName
+	Username    *Username
+	Email       *Email
+	Password    *Password
+}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
+type RegisterResult struct {
+	AccessToken  string
+	RefreshToken string
+}
 
-	var req prochatv1.RegisterRequest
-	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
-	if err != nil {
-		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-
+func (h Service) Register(ctx context.Context, params RegisterParams) (RegisterResult, error) {
 	// TODO: Multiple attempts in case of collisions. Unlikely at the moment
-	if req.Username == "" {
-		req.Username = username.Generate()
-	}
-
-	// Force username to be lowercase
-	req.Username = strings.ToLower(req.Username)
-
-	if isValid, msg := validation.ValidateUsername(req.Username); !isValid {
-		slog.Info(msg, "error", err, "request_uri", r.RequestURI)
-		http.Error(w, msg, http.StatusBadRequest)
-		return
+	if params.Username == nil {
+		usernameStr := username.Generate()
+		userName, err := NewUsername(usernameStr)
+		if err != nil {
+			slog.Error("failed generating valid username", "error", err)
+			return RegisterResult{}, fmt.Errorf("failed generating valid username: %w", InternalError)
+		}
+		params.Username = &userName
 	}
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		slog.Error("error generating uuid", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+		return RegisterResult{}, fmt.Errorf("failed generating valid uuidv7: %w: %w", InternalError, err)
 	}
 
-	if req.Email == "" && req.Password == "" {
-		// If no email and password provided, anonymously register the user
-		_, err = h.postgresClient.CreateAnonymousUser(r.Context(), postgres.CreateAnonymousUserParams{
+	if params.Email == nil && params.Password == nil {
+		// If both email and password weren't provided, anonymously register the user
+		_, err = h.postgresClient.CreateAnonymousUser(ctx, postgres.CreateAnonymousUserParams{
 			ID:       id,
-			Username: req.Username,
+			Username: string(*params.Username),
 		})
 		if err != nil {
-			slog.Error("error creating anonymous user", "error", err, "request_uri", r.RequestURI)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return RegisterResult{}, fmt.Errorf("failed creating anonymous user: %w: %w", InternalError, err)
 		}
 	} else {
-		// Email and password provided, register user
-		if isValid, msg := validation.ValidateEmail(req.Email); !isValid {
-			slog.Info(msg, "error", err, "request_uri", r.RequestURI)
-			http.Error(w, msg, http.StatusBadRequest)
-			return
+		if params.Email == nil {
+			return RegisterResult{}, fmt.Errorf("email not provided but password was: %w", EmailNotProvided)
 		}
 
-		if isValid, msg := validation.ValidatePassword(req.Password); !isValid {
-			slog.Info(msg, "error", err, "request_uri", r.RequestURI)
-			http.Error(w, msg, http.StatusBadRequest)
-			return
+		if params.Password == nil {
+			return RegisterResult{}, fmt.Errorf("password was provided but email was not: %w", PasswordNotProvided)
 		}
 
-		argon2idPassword, err := argon2.Hash(req.Password, nil)
+		argon2idPassword, err := argon2.Hash(string(*params.Password), nil)
 		if err != nil {
-			slog.Error("error hashing password", "error", err, "request_uri", r.RequestURI)
-			http.Error(w, "", http.StatusInternalServerError)
-			return
+			return RegisterResult{}, fmt.Errorf("failed hashing argon2 password: %w: %w", InternalError, err)
 		}
 
-		_, err = h.postgresClient.CreateUser(r.Context(), postgres.CreateUserParams{
+		_, err = h.postgresClient.CreateUser(ctx, postgres.CreateUserParams{
 			ID:           id,
-			Username:     req.Username,
-			Email:        pgtype.Text{String: req.Email, Valid: true},
+			Username:     string(*params.Username),
+			Email:        pgtype.Text{String: string(*params.Email), Valid: true},
 			PasswordHash: pgtype.Text{String: argon2idPassword, Valid: true},
 		})
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			if pgErr.ConstraintName == "users_username_key" {
-				http.Error(w, "Username already taken", http.StatusBadRequest)
-				return
+				return RegisterResult{}, fmt.Errorf("username already taken: %w: %w", UsernameTakenError, err)
 			}
 
 			if pgErr.ConstraintName == "users_email_key" {
-				http.Error(w, "Email already taken", http.StatusBadRequest)
-				return
+				return RegisterResult{}, fmt.Errorf("email already taken: %w: %w", EmailTakenError, err)
 			}
 
 			// Fallback to less specific error, shouldn't reach here
-			slog.Error("unknown constraint name, falling back to generic error message", "error", err, "request_uri", r.RequestURI)
-			http.Error(w, "Username or email already taken", http.StatusBadRequest)
-			return
+			return RegisterResult{}, fmt.Errorf("email or password already taken: %w: %w", UsernameTakenError, err)
 		}
 		if err != nil {
-			slog.Error("error creating user", "error", err, "request_uri", r.RequestURI)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
+			return RegisterResult{}, fmt.Errorf("failed creating user: %w: %w", InternalError, err)
 		}
 	}
 
-	err = h.issueAndSetTokenPairCookies(r.Context(), w, id)
+	accessToken, refreshToken, err := h.issueTokenPair(ctx, id)
 	if err != nil {
-		slog.Error("error generating token pair cookies", "error", err, "request_uri", r.RequestURI)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
+		return RegisterResult{}, fmt.Errorf("failed issuing token pair for registration: %w: %w", InternalError, err)
 	}
 
-	w.WriteHeader(http.StatusOK)
+	return RegisterResult{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
-func (h Handlers) issueAndSetTokenPairCookies(ctx context.Context, w http.ResponseWriter, id uuid.UUID) error {
+func (h Service) issueTokenPair(ctx context.Context, id uuid.UUID) (string, string, error) {
 	accessToken, err := h.authRepo.IssueAccessToken(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed issuing access token")
+		return "", "", fmt.Errorf("failed issuing access token")
 	}
 
 	refreshToken, err := h.authRepo.IssueRefreshToken(ctx, id, accessToken)
 	if err != nil {
-		return fmt.Errorf("failed issuing refresh token")
+		return "", "", fmt.Errorf("failed issuing refresh token")
 	}
 
-	h.setTokenPairCookies(w, accessToken, refreshToken)
-	return nil
-}
-
-func (h Handlers) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
-	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, "/", authrepo.AccessTokenMaxAge)
-	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, "/api/v1/auth/refresh", authrepo.RefreshTokenMaxAge)
-
-	http.SetCookie(w, &accessTokenCookie)
-	http.SetCookie(w, &refreshTokenCookie)
+	return accessToken, refreshToken, nil
 }

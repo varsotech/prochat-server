@@ -1,11 +1,22 @@
-package auth
+package http
 
 import (
+	"github.com/varsotech/prochat-server/internal/auth/service"
 	"net/http"
 )
 
-func RegisterRoutes(mux *http.ServeMux, authHandlers Handlers) {
-	mux.HandleFunc("POST /api/v1/auth/login", authHandlers.Login)
-	mux.HandleFunc("POST /api/v1/auth/register", authHandlers.Register)
-	mux.HandleFunc("POST /api/v1/auth/refresh", authHandlers.Refresh)
+type Routes struct {
+	service *service.Service
+}
+
+func NewRoutes(service *service.Service) *Routes {
+	return &Routes{
+		service: service,
+	}
+}
+
+func (o *Routes) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/v1/auth/login", o.Login)
+	mux.HandleFunc("POST /api/v1/auth/register", o.Register)
+	mux.HandleFunc("POST /api/v1/auth/refresh", o.Refresh)
 }

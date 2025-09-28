@@ -1,4 +1,4 @@
-package auth
+package username
 
 import (
 	"log/slog"

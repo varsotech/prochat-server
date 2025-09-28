@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"github.com/varsotech/prochat-server/internal/httpserver/internal/html/components"
+	"github.com/varsotech/prochat-server/internal/html/components"
 	"html/template"
 	"log/slog"
 	"net/http"

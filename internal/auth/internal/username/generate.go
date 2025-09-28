@@ -1,4 +1,4 @@
-package auth
+package username
 
 import (
 	"fmt"
@@ -124,7 +124,7 @@ var nouns = []string{
 	"snow",
 }
 
-func generateUsername() string {
+func Generate() string {
 	adjectiveIndex := rand.Intn(len(adjectives))
 	nounIndex := rand.Intn(len(nouns))
 	number := rand.Intn(90000) + 10000 // Max 99,999

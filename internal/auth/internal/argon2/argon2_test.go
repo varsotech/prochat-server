@@ -1,4 +1,4 @@
-package auth
+package argon2
 
 import (
 	"encoding/base64"

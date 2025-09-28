@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
-	"github.com/varsotech/prochat-server/internal/httpserver"
+	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
+	"github.com/varsotech/prochat-server/internal/html"
+	"github.com/varsotech/prochat-server/internal/pkg/httpserver"
+	"github.com/varsotech/prochat-server/internal/pkg/postgres"
 	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"os"
 	"os/signal"
 
 	"github.com/joho/godotenv"
-	"github.com/varsotech/prochat-server/internal/database/postgres"
 )
 
 func Run() error {
@@ -40,8 +42,17 @@ func Run() error {
 
 	errGroup, ctx := errgroup.WithContext(ctx)
 
+	authRoutes := authhttp.NewRoutes()
+	htmlRoutes, err := html.NewRoutes()
+	if err != nil {
+		slog.Error("error initializing html routes", "error", err)
+		return err
+	}
+
+	httpServer := httpserver.New(ctx, os.Getenv("HTTP_SERVER_PORT"), authRoutes, htmlRoutes)
+
 	// Each routine must gracefully exit on context cancellation
-	errGroup.Go(httpserver.New(ctx, os.Getenv("HTTP_SERVER_PORT"), postgresClient, redisClient).Serve)
+	errGroup.Go(httpServer.Serve)
 
 	err = errGroup.Wait()
 	if err != nil {

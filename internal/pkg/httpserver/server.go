@@ -13,21 +13,23 @@ type Registrar interface {
 }
 
 type Server struct {
-	ctx  context.Context
-	port string
+	ctx        context.Context
+	port       string
+	registrars []Registrar
 }
 
-func New(ctx context.Context, port string) *Server {
+func New(ctx context.Context, port string, registrars ...Registrar) *Server {
 	return &Server{
-		ctx:  ctx,
-		port: port,
+		ctx:        ctx,
+		port:       port,
+		registrars: registrars,
 	}
 }
 
-func (s *Server) Serve(registrars ...Registrar) error {
+func (s *Server) Serve() error {
 	mux := http.NewServeMux()
 
-	for _, reg := range registrars {
+	for _, reg := range s.registrars {
 		reg.RegisterRoutes(mux)
 	}
 
