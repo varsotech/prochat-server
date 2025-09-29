@@ -2,9 +2,9 @@ package http
 
 import (
 	"errors"
+	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
 	"github.com/varsotech/prochat-server/internal/auth/service"
 	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
-	"github.com/varsotech/prochat-server/internal/pkg/redis/authrepo"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"log/slog"
@@ -14,37 +14,18 @@ import (
 const (
 	accessTokenCookieName  = "prochat_accesstoken"
 	refreshTokenCookieName = "prochat_refreshtoken"
+	accessTokenCookiePath  = "/"
+	refreshTokenCookiePath = "/api/v1/auth/refresh"
 )
 
 //func (h Handlers) LoginProtectionMiddleware(next http.Handler) http.Handler {
 //	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		accessTokenCookie, err := r.Cookie(accessTokenCookieName)
-//		if errors.Is(err, http.ErrNoCookie) {
-//			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-//		}
-//		if err != nil {
-//			slog.Error("error getting access token cookie", "error", err)
-//			http.Error(w, "error getting cookie", http.StatusUnauthorized)
-//			return
-//		}
-//
-//		userId, found, err := h.authRepo.GetUserIdFromAccessToken(r.Context(), accessTokenCookie.Value)
-//		if err != nil {
-//			slog.Error("error getting user id from access token", "error", err)
-//			http.Error(w, "Internal error", http.StatusInternalServerError)
-//			return
-//		}
-//
-//		if !found {
-//			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-//			return
-//		}
-//
+
 //		next.ServeHTTP(w, r)
 //	})
 //}
 
-func (o *Routes) Refresh(w http.ResponseWriter, r *http.Request) {
+func (o *Service) refresh(w http.ResponseWriter, r *http.Request) {
 	refreshTokenCookie, err := r.Cookie(refreshTokenCookieName)
 	if err != nil {
 		slog.Error("error getting refreshToken cookie", "error", err)
@@ -70,7 +51,7 @@ func (o *Routes) Refresh(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Routes) Login(w http.ResponseWriter, r *http.Request) {
+func (o *Service) login(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
@@ -111,7 +92,7 @@ func (o *Routes) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Routes) Register(w http.ResponseWriter, r *http.Request) {
+func (o *Service) register(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
@@ -178,9 +159,38 @@ func (o *Routes) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Routes) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
-	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, "/", authrepo.AccessTokenMaxAge)
-	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, "/api/v1/auth/refresh", authrepo.RefreshTokenMaxAge)
+func (o *Service) logout(w http.ResponseWriter, r *http.Request) {
+	accessTokenData, err := o.Authenticate(r)
+	if errors.Is(err, UnauthorizedError) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		slog.Error("failed to authenticate user", "error", err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	err = o.service.Logout(r.Context(), service.LogoutParams{
+		AccessToken: accessTokenData.AccessToken,
+	})
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	accessTokenCookie := createCookie(accessTokenCookieName, "", accessTokenCookiePath, -1)
+	refreshTokenCookie := createCookie(refreshTokenCookieName, "", refreshTokenCookiePath, -1)
+
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (o *Service) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
+	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, accessTokenCookiePath, authrepo.AccessTokenMaxAge)
+	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, refreshTokenCookiePath, authrepo.RefreshTokenMaxAge)
 
 	http.SetCookie(w, &accessTokenCookie)
 	http.SetCookie(w, &refreshTokenCookie)

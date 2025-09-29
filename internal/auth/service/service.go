@@ -10,9 +10,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/varsotech/prochat-server/internal/auth/internal/argon2"
+	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
 	"github.com/varsotech/prochat-server/internal/auth/internal/username"
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
-	"github.com/varsotech/prochat-server/internal/pkg/redis/authrepo"
 	"log/slog"
 	"net/http"
 )
@@ -71,23 +71,14 @@ type RefreshResult struct {
 }
 
 func (h Service) Refresh(ctx context.Context, refreshToken string) (RefreshResult, error) {
-	userId, found, err := h.authRepo.GetUserIdFromRefreshToken(ctx, refreshToken)
-	if err != nil {
-		return RefreshResult{}, fmt.Errorf("failed to get user id from refresh token: %w: %w", InternalError, err)
-	}
-
-	if !found {
-		return RefreshResult{}, fmt.Errorf("refresh token not found: %w", UnauthorizedError)
-	}
-
-	accessToken, refreshToken, err := h.authRepo.RefreshTokenPair(ctx, userId)
+	refreshTokenPairResult, err := h.authRepo.RefreshTokenPair(ctx, refreshToken)
 	if err != nil {
 		return RefreshResult{}, fmt.Errorf("failed refresh token pair: %w: %w", InternalError, err)
 	}
 
 	return RefreshResult{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  refreshTokenPairResult.AccessToken,
+		RefreshToken: refreshTokenPairResult.RefreshToken,
 	}, nil
 }
 
@@ -121,14 +112,14 @@ func (h Service) Login(ctx context.Context, params LoginParams) (LoginResult, er
 		return LoginResult{}, fmt.Errorf("incorrect password: %w", UnauthorizedError)
 	}
 
-	accessToken, refreshToken, err := h.issueTokenPair(ctx, user.ID)
+	issueTokenPairResult, err := h.authRepo.IssueTokenPair(ctx, user.ID)
 	if err != nil {
 		return LoginResult{}, fmt.Errorf("failed issuing token pair for login: %w: %w", InternalError, err)
 	}
 
 	return LoginResult{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  issueTokenPairResult.AccessToken,
+		RefreshToken: issueTokenPairResult.RefreshToken,
 	}, nil
 }
 
@@ -208,27 +199,34 @@ func (h Service) Register(ctx context.Context, params RegisterParams) (RegisterR
 		}
 	}
 
-	accessToken, refreshToken, err := h.issueTokenPair(ctx, id)
+	issueTokenPairResult, err := h.authRepo.IssueTokenPair(ctx, id)
 	if err != nil {
 		return RegisterResult{}, fmt.Errorf("failed issuing token pair for registration: %w: %w", InternalError, err)
 	}
 
 	return RegisterResult{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  issueTokenPairResult.AccessToken,
+		RefreshToken: issueTokenPairResult.RefreshToken,
 	}, nil
 }
 
-func (h Service) issueTokenPair(ctx context.Context, id uuid.UUID) (string, string, error) {
-	accessToken, err := h.authRepo.IssueAccessToken(ctx, id)
+type LogoutParams struct {
+	AccessToken string
+}
+
+func (h Service) Logout(ctx context.Context, params LogoutParams) error {
+	accessTokenData, found, err := h.authRepo.GetAccessTokenData(ctx, params.AccessToken)
 	if err != nil {
-		return "", "", fmt.Errorf("failed issuing access token")
+		return fmt.Errorf("failed to get user id from refresh token: %w: %w", InternalError, err)
+	}
+	if !found {
+		return UnauthorizedError
 	}
 
-	refreshToken, err := h.authRepo.IssueRefreshToken(ctx, id, accessToken)
+	err = h.authRepo.DeleteTokenPair(ctx, params.AccessToken, accessTokenData.RefreshToken)
 	if err != nil {
-		return "", "", fmt.Errorf("failed issuing refresh token")
+		return fmt.Errorf("failed to delete token pair: %w: %w", InternalError, err)
 	}
 
-	return accessToken, refreshToken, nil
+	return nil
 }

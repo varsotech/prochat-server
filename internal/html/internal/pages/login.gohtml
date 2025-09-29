@@ -5,7 +5,7 @@
     <head>
         {{template "HeadInner" .HeadInner}}
         <style>
-            .homepage-container {
+            .page-container {
                 display: flex;
                 flex: 1;
                 justify-content: center;
@@ -15,9 +15,12 @@
                 background: white;
                 padding: 2rem;
                 border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                width: 300px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 text-align: center;
+            }
+
+            .page-container form {
+                width: 200px;
             }
 
             .register-link {
@@ -30,13 +33,13 @@
             }
 
             #message {
-                height: 30px;
-                font-size: 0.9rem;
+                height: 40px;
+                font-size: 0.8rem;
             }
         </style>
     </head>
     <body>
-        <div class="homepage-container">
+        <div class="page-container">
             <h2>Login</h2>
             <form id="login-form">
                 <span id="message"></span>

@@ -42,14 +42,14 @@ func Run() error {
 
 	errGroup, ctx := errgroup.WithContext(ctx)
 
-	authRoutes := authhttp.NewRoutes(postgresClient, redisClient)
-	htmlRoutes, err := html.NewRoutes()
+	authHttpService := authhttp.New(postgresClient, redisClient)
+	htmlRoutes, err := html.NewRoutes(authHttpService)
 	if err != nil {
 		slog.Error("error initializing html routes", "error", err)
 		return err
 	}
 
-	httpServer := httpserver.New(ctx, os.Getenv("HTTP_SERVER_PORT"), authRoutes, htmlRoutes)
+	httpServer := httpserver.New(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpService, htmlRoutes)
 
 	// Each routine must gracefully exit on context cancellation
 	errGroup.Go(httpServer.Serve)
