@@ -77,7 +77,7 @@ func NewUsername(username string) (Username, error) {
 
 type Login string
 
-var LoginValidationError = Error{ExternalMessage: "Invalid login", HTTPCode: http.StatusBadRequest}
+var LoginValidationError = Error{ExternalMessage: "Invalid email or username", HTTPCode: http.StatusBadRequest}
 
 // NewLogin validates that the value is a valid email or username
 func NewLogin(login string) (Login, error) {

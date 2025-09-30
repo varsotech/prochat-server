@@ -67,21 +67,9 @@ func (o *Service) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	login, err := service.NewLogin(req.Login)
-	if err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	password, err := service.NewPassword(req.Password)
-	if err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
 	loginResult, err := o.service.Login(r.Context(), service.LoginParams{
-		Login:    login,
-		Password: password,
+		Login:    req.Login,
+		Password: req.Password,
 	})
 	if err != nil {
 		writeServiceError(w, err)

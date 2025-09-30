@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,12 +19,14 @@ import (
 )
 
 var InternalError = Error{ExternalMessage: "Internal error", HTTPCode: http.StatusInternalServerError}
-var UnauthorizedError = Error{ExternalMessage: "Internal error", HTTPCode: http.StatusInternalServerError}
+var UnauthorizedError = Error{ExternalMessage: "Unauthorized", HTTPCode: http.StatusUnauthorized}
+var IncorrectCredentialsError = Error{ExternalMessage: "Incorrect credentials", HTTPCode: http.StatusUnauthorized}
+var LoginNotProvided = Error{ExternalMessage: "Email or username not provided", HTTPCode: http.StatusBadRequest}
 var EmailNotProvided = Error{ExternalMessage: "Email not provided", HTTPCode: http.StatusBadRequest}
 var PasswordNotProvided = Error{ExternalMessage: "Password not provided", HTTPCode: http.StatusBadRequest}
-var UsernameTakenError = Error{ExternalMessage: "Username already taken", HTTPCode: http.StatusConflict}
-var EmailTakenError = Error{ExternalMessage: "Email already taken", HTTPCode: http.StatusConflict}
 var UsernameOrEmailTakenError = Error{ExternalMessage: "Username or email already taken", HTTPCode: http.StatusConflict}
+var EmailTakenError = Error{ExternalMessage: "Email already taken", HTTPCode: http.StatusConflict}
+var UsernameTakenError = Error{ExternalMessage: "Username already taken", HTTPCode: http.StatusConflict}
 
 type Service struct {
 	postgresClient *postgres.Queries
@@ -83,8 +86,8 @@ func (h Service) Refresh(ctx context.Context, refreshToken string) (RefreshResul
 }
 
 type LoginParams struct {
-	Login    Login
-	Password Password
+	Login    string
+	Password string
 }
 
 type LoginResult struct {
@@ -93,23 +96,33 @@ type LoginResult struct {
 }
 
 func (h Service) Login(ctx context.Context, params LoginParams) (LoginResult, error) {
-	user, err := h.postgresClient.GetUserByLogin(ctx, string(params.Login))
+	if params.Login == "" {
+		return LoginResult{}, LoginNotProvided
+	}
+	if params.Password == "" {
+		return LoginResult{}, PasswordNotProvided
+	}
+
+	user, err := h.postgresClient.GetUserByLogin(ctx, params.Login)
 	if err != nil {
-		// TODO: Return internal error for actual failure here by parsing the error
-		return LoginResult{}, fmt.Errorf("failed getting user by login: %w: %w", UnauthorizedError, err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return LoginResult{}, fmt.Errorf("failed getting user by login: %w: %w", IncorrectCredentialsError, err)
+		}
+		slog.Error("failed to get user by login", "error", err)
+		return LoginResult{}, fmt.Errorf("failed getting user by login: %w: %w", InternalError, err)
 	}
 
 	if !user.PasswordHash.Valid {
-		return LoginResult{}, fmt.Errorf("no password set for user: %w", UnauthorizedError)
+		return LoginResult{}, fmt.Errorf("no password set for user: %w", IncorrectCredentialsError)
 	}
 
-	passwordsMatch, err := argon2.Compare(string(params.Password), user.PasswordHash.String)
+	passwordsMatch, err := argon2.Compare(params.Password, user.PasswordHash.String)
 	if err != nil {
 		return LoginResult{}, fmt.Errorf("failed comparing passwords for user: %w: %w", InternalError, err)
 	}
 
 	if !passwordsMatch {
-		return LoginResult{}, fmt.Errorf("incorrect password: %w", UnauthorizedError)
+		return LoginResult{}, fmt.Errorf("incorrect password: %w", IncorrectCredentialsError)
 	}
 
 	issueTokenPairResult, err := h.authRepo.IssueTokenPair(ctx, user.ID)
