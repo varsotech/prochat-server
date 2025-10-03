@@ -33,7 +33,7 @@ func (o *Service) home(w http.ResponseWriter, r *http.Request) {
 		},
 	}); err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		slog.Error("failed to execute homepage", err)
+		slog.Error("failed to execute homepage", "error", err)
 		return
 	}
 }
@@ -46,7 +46,7 @@ func (o *Service) login(w http.ResponseWriter, r *http.Request) {
 		},
 	}); err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
-		slog.Error("failed to execute login page", err)
+		slog.Error("failed to execute login page", "error", err)
 		return
 	}
 }
@@ -59,7 +59,7 @@ func (o *Service) register(w http.ResponseWriter, r *http.Request) {
 		},
 	}); err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
-		slog.Error("failed to execute register page", err)
+		slog.Error("failed to execute register page", "error", err)
 		return
 	}
 }

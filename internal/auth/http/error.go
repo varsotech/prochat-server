@@ -16,7 +16,7 @@ func writeServiceError(w http.ResponseWriter, err error) {
 
 	// Log internal errors
 	if serviceErr.HTTPCode == http.StatusInternalServerError {
-		slog.Error("user got internal error: %w", err)
+		slog.Error("user got internal error", "error", err)
 	}
 
 	http.Error(w, serviceErr.ExternalMessage, serviceErr.HTTPCode)
