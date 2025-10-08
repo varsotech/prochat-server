@@ -1,0 +1,121 @@
+{{- /*gotype: github.com/varsotech/prochat-server/internal/httpserver/internal/html/pages.LoginPage*/ -}}
+{{define "LoginPage"}}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{template "HeadInner" .HeadInner}}
+        <style>
+            .page-container {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+
+            .page-container form {
+                width: 200px;
+            }
+
+            .register-link {
+                margin-top: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .register-link a:hover {
+                text-decoration: underline;
+            }
+
+            #message {
+                height: 40px;
+                font-size: 0.8rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page-container">
+            <h2>Login</h2>
+            <form id="login-form">
+                <span id="message"></span>
+                <label>
+                    <input type="text" name="login" placeholder="Username or email" required>
+                </label>
+                <label>
+                    <input type="password" name="password" placeholder="Password" required>
+                </label>
+                <button type="submit">Login</button>
+            </form>
+            <div class="register-link">
+                Don’t have an account? <a href="/register" id="register-link">Sign up</a>
+            </div>
+            <script>
+                // Maintain the query params even after navigation
+                const query = window.location.search;
+                const link = document.getElementById('register-link');
+                link.href += query;
+
+                // Make form send JSON
+                const form = document.getElementById('login-form');
+
+                function safeRedirect(url, fallback) {
+                    const target = new URL(url, window.location.origin); // relative URLs allowed
+                    if (target.origin !== window.location.origin) {
+                        console.warn('Blocked unsafe redirect: ' + url + ' falling back to: ', fallback);
+                        window.location.href = fallback;
+                        return;
+                    }
+                    window.location.href = target.href;
+                }
+
+                // Handle form submission
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault(); // prevent normal form submission
+
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries()); // convert to a plain object
+                    const messageEl = document.getElementById('message');
+
+                    messageEl.style.color = 'black';
+                    messageEl.textContent = '';
+
+                    try {
+                        const response = await fetch('/api/v1/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        if (!response.ok) {
+                            let errorText = await response.text();
+                            errorText = errorText.replaceAll("\n", "");
+                            
+                            if (!errorText) {
+                                errorText = `${response.status}`
+                            }
+                            messageEl.style.color = 'red';
+                            messageEl.textContent = errorText;
+                            return
+                        }
+
+                        messageEl.style.color = 'green';
+                        messageEl.textContent = 'Successfully logged in, redirecting...';
+
+                        const params = new URLSearchParams(window.location.search);
+                        const redirectTo = params.get('redirectTo');
+                        safeRedirect(redirectTo, "/")
+                    } catch (err) {
+                        messageEl.style.color = 'red';
+                        messageEl.textContent = err.message;
+                    }
+                });
+            </script>
+        </div>
+    </body>
+</html>
+{{end}}

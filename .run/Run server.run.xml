@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run server" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="prochat-server" />
+    <working_directory value="$PROJECT_DIR$" />
+    <kind value="PACKAGE" />
+    <package value="github.com/varsotech/prochat-server/cmd/prochat" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/prochat/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

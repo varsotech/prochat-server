@@ -1,0 +1,78 @@
+{{- /*gotype: github.com/varsotech/prochat-server/internal/httpserver/internal/html/pages.RegisterPage*/ -}}
+{{define "HomePage"}}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+       {{template "HeadInner" .HeadInner}}
+        <style>
+            .homepage-container {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+            
+            .homepage-container form {
+                width: 200px;
+            }
+
+            #message {
+                height: 40px;
+                font-size: 0.8rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="homepage-container">
+            <form id="logout-form">
+                <span id="message"></span>
+                <button type="submit">Log out</button>
+            </form>
+            <script>
+                // Make form send JSON
+                const form = document.getElementById('logout-form');
+
+                // Handle form submission
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault(); // prevent normal form submission
+
+                    const messageEl = document.getElementById('message');
+
+                    messageEl.style.color = 'black';
+                    messageEl.textContent = '';
+
+                    try {
+                        const response = await fetch('/api/v1/auth/logout', {
+                            method: 'POST',
+                        });
+
+                        if (!response.ok) {
+                            let errorText = await response.text();
+                            if (!errorText) {
+                                errorText = `${response.status}`
+                            }
+                            messageEl.style.color = 'red';
+                            messageEl.textContent = errorText;
+                            return
+                        }
+
+                        messageEl.style.color = 'green';
+                        messageEl.textContent = 'Successfully logged out, redirecting...';
+                        window.location.href = "/login"
+                    } catch (err) {
+                        messageEl.style.color = 'red';
+                        messageEl.textContent = err.message;
+                    }
+                });
+            </script>
+        </div>
+    </body>
+</html>
+{{end}}

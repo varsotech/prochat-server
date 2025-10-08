@@ -1,0 +1,125 @@
+{{- /*gotype: github.com/varsotech/prochat-server/internal/httpserver/internal/html/pages.RegisterPage*/ -}}
+{{define "RegisterPage"}}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+       {{template "HeadInner" .HeadInner}}
+        <style>
+            .homepage-container {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+            
+            .homepage-container form {
+                width: 200px;
+            }
+
+            .login-link {
+                margin-top: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .login-link a:hover {
+                text-decoration: underline;
+            }
+            
+            #message {
+                height: 40px;
+                font-size: 0.8rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="homepage-container">
+            <h2>Register</h2>
+            <form id="register-form">
+                <span id="message"></span>
+                <label>
+                    <input type="text" name="username" placeholder="Username" required>
+                </label>
+                <label>
+                    <input type="email" name="email" placeholder="Email" required>
+                </label>
+                <label>
+                    <input type="text" name="display_name" placeholder="Display Name" required>
+                </label>
+                <label>
+                    <input type="password" name="password" placeholder="Password" required>
+                </label>
+                <button type="submit">Sign Up</button>
+            </form>
+            <div class="login-link">
+                Already have an account? <a href="/login" id="login-link">Login</a>
+            </div>
+            <script>
+                // Maintain the query params even after navigation
+                const query = window.location.search;
+                const link = document.getElementById('login-link');
+                link.href += query;
+
+                // Make form send JSON
+                const form = document.getElementById('register-form');
+
+                function safeRedirect(url, fallback) {
+                    const target = new URL(url, window.location.origin); // relative URLs allowed
+                    if (target.origin !== window.location.origin) {
+                        console.warn('Blocked unsafe redirect: ' + url + ' falling back to: ', fallback);
+                        window.location.href = fallback;
+                        return;
+                    }
+                    window.location.href = target.href;
+                }
+
+                // Handle form submission
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault(); // prevent normal form submission
+
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries()); // convert to a plain object
+                    const messageEl = document.getElementById('message');
+
+                    messageEl.style.color = 'black';
+                    messageEl.textContent = '';
+
+                    try {
+                        const response = await fetch('/api/v1/auth/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!response.ok) {
+                            let errorText = await response.text();
+                            if (!errorText) {
+                                errorText = `${response.status}`
+                            }
+                            messageEl.style.color = 'red';
+                            messageEl.textContent = errorText;
+                            return
+                        }
+
+                        messageEl.style.color = 'green';
+                        messageEl.textContent = 'Successfully registered, redirecting...';
+
+                        const params = new URLSearchParams(window.location.search);
+                        const redirectTo = params.get('redirectTo');
+                        safeRedirect(redirectTo, "/")
+                    } catch (err) {
+                        messageEl.style.color = 'red';
+                        messageEl.textContent = err.message;
+                    }
+                });
+            </script>
+        </div>
+    </body>
+</html>
+{{end}}
