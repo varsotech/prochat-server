@@ -20,9 +20,9 @@ func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
 	}
 }
 
-func (o *Service) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/auth/login", o.login)
-	mux.HandleFunc("POST /api/v1/auth/register", o.register)
-	mux.HandleFunc("POST /api/v1/auth/refresh", o.refresh)
-	mux.HandleFunc("POST /api/v1/auth/logout", o.logout)
+func (s *Service) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/v1/auth/login", s.loginHandler)
+	mux.HandleFunc("POST /api/v1/auth/register", s.registerHandler)
+	mux.HandleFunc("POST /api/v1/auth/refresh", s.refreshHandler)
+	mux.HandleFunc("POST /api/v1/auth/logout", s.logoutHandler)
 }

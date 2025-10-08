@@ -18,14 +18,7 @@ const (
 	refreshTokenCookiePath = "/api/v1/auth/refresh"
 )
 
-//func (h Handlers) LoginProtectionMiddleware(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-//		next.ServeHTTP(w, r)
-//	})
-//}
-
-func (o *Service) refresh(w http.ResponseWriter, r *http.Request) {
+func (s *Service) refreshHandler(w http.ResponseWriter, r *http.Request) {
 	refreshTokenCookie, err := r.Cookie(refreshTokenCookieName)
 	if err != nil {
 		slog.Error("error getting refreshToken cookie", "error", err)
@@ -33,7 +26,7 @@ func (o *Service) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshResult, err := o.service.Refresh(r.Context(), refreshTokenCookie.Value)
+	refreshResult, err := s.service.Refresh(r.Context(), refreshTokenCookie.Value)
 	if err != nil {
 		slog.Error("refresh failed", "error", err, "request_uri", r.RequestURI)
 
@@ -47,11 +40,11 @@ func (o *Service) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	o.setTokenPairCookies(w, refreshResult.AccessToken, refreshResult.RefreshToken)
+	s.setTokenPairCookies(w, refreshResult.AccessToken, refreshResult.RefreshToken)
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Service) login(w http.ResponseWriter, r *http.Request) {
+func (s *Service) loginHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
@@ -67,7 +60,7 @@ func (o *Service) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loginResult, err := o.service.Login(r.Context(), service.LoginParams{
+	loginResult, err := s.service.Login(r.Context(), service.LoginParams{
 		Login:    req.Login,
 		Password: req.Password,
 	})
@@ -76,11 +69,11 @@ func (o *Service) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	o.setTokenPairCookies(w, loginResult.AccessToken, loginResult.RefreshToken)
+	s.setTokenPairCookies(w, loginResult.AccessToken, loginResult.RefreshToken)
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Service) register(w http.ResponseWriter, r *http.Request) {
+func (s *Service) registerHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
@@ -132,7 +125,7 @@ func (o *Service) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	registerResult, err := o.service.Register(r.Context(), service.RegisterParams{
+	registerResult, err := s.service.Register(r.Context(), service.RegisterParams{
 		DisplayName: displayName,
 		Username:    userName,
 		Email:       email,
@@ -143,12 +136,12 @@ func (o *Service) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	o.setTokenPairCookies(w, registerResult.AccessToken, registerResult.RefreshToken)
+	s.setTokenPairCookies(w, registerResult.AccessToken, registerResult.RefreshToken)
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Service) logout(w http.ResponseWriter, r *http.Request) {
-	accessTokenData, err := o.Authenticate(r)
+func (s *Service) logoutHandler(w http.ResponseWriter, r *http.Request) {
+	accessTokenData, err := s.Authenticate(r)
 	if errors.Is(err, UnauthorizedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -159,7 +152,7 @@ func (o *Service) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = o.service.Logout(r.Context(), service.LogoutParams{
+	err = s.service.Logout(r.Context(), service.LogoutParams{
 		AccessToken: accessTokenData.AccessToken,
 	})
 	if err != nil {
@@ -176,7 +169,7 @@ func (o *Service) logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Service) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
+func (s *Service) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
 	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, accessTokenCookiePath, authrepo.AccessTokenMaxAge)
 	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, refreshTokenCookiePath, authrepo.RefreshTokenMaxAge)
 
