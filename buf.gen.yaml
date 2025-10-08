@@ -5,7 +5,7 @@ managed:
     - file_option: go_package_prefix
       value: github.com/varso/protchat-server/internal/models/gen
 plugins:
-  - remote: buf.build/protocolbuffers/go
+  - remote: buf.build/protocolbuffers/go:v1.36.9
     out: internal/models/gen
     opt: paths=source_relative
   - remote: buf.build/bufbuild/es:v2.8.0

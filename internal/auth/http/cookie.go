@@ -32,7 +32,7 @@ func (s *Service) Authenticate(r *http.Request) (authrepo.AccessTokenData, error
 		return authrepo.AccessTokenData{}, err
 	}
 
-	accessTokenData, found, err := o.authRepo.GetAccessTokenData(r.Context(), accessTokenCookie.Value)
+	accessTokenData, found, err := s.authRepo.GetAccessTokenData(r.Context(), accessTokenCookie.Value)
 	if err != nil {
 		return authrepo.AccessTokenData{}, fmt.Errorf("error getting access token data: %w", err)
 	}
