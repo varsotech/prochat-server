@@ -3,8 +3,9 @@ package argon2
 import (
 	"encoding/base64"
 	"fmt"
-	"golang.org/x/crypto/argon2"
 	"testing"
+
+	"golang.org/x/crypto/argon2"
 )
 
 func TestDecodeHash(t *testing.T) {

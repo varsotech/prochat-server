@@ -1,4 +1,7 @@
 # Prochat
+
+[![CI](https://github.com/varsotech/prochat-server/actions/workflows/ci.yaml/badge.svg)](https://github.com/varsotech/prochat-server/actions/workflows/ci.yaml)
+
 ## Contributing
 ### Prerequisites
 

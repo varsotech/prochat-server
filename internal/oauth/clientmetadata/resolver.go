@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/varsotech/prochat-server/internal/pkg/httputil"
 	"io"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/varsotech/prochat-server/internal/pkg/httputil"
 )
 
 var ErrNotAccessible = errors.New("client not accessible")

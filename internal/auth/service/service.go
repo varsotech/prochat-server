@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -13,8 +16,6 @@ import (
 	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 	"github.com/varsotech/prochat-server/internal/pkg/argon2"
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
-	"log/slog"
-	"net/http"
 )
 
 var InternalError = Error{ExternalMessage: "Internal error", HTTPCode: http.StatusInternalServerError}

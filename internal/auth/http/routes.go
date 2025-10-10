@@ -1,10 +1,11 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/varsotech/prochat-server/internal/auth/service"
-	"net/http"
 )
 
 type Authenticator interface {
