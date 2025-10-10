@@ -1,14 +1,15 @@
 package oauth
 
 import (
+	"html/template"
+	"io"
+	"net/http"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/redis/go-redis/v9"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
 	"github.com/varsotech/prochat-server/internal/oauth/clientmetadata"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
-	"html/template"
-	"io"
-	"net/http"
 )
 
 type Authenticator interface {

@@ -1,10 +1,11 @@
 package html
 
 import (
-	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
-	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 	"io"
 	"net/http"
+
+	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
+	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 )
 
 type Authenticator interface {

@@ -3,6 +3,10 @@ package prochat
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"os/signal"
+
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
@@ -12,9 +16,6 @@ import (
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
 	"github.com/varsotech/prochat-server/internal/pkg/s3util"
 	"golang.org/x/sync/errgroup"
-	"log/slog"
-	"os"
-	"os/signal"
 )
 
 func Run() error {
