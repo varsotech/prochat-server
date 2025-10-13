@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/varsotech/prochat-server/internal/imageproxy"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
 )
 
@@ -18,9 +19,11 @@ var ErrNotAccessible = errors.New("client not accessible")
 type Resolver struct {
 	client *httputil.Client
 	cache  *Cache
+	// TODO: What happens if the secret needs to be rotated?
+	imageProxySecret string
 }
 
-func NewResolver(httpClient *httputil.Client, cache *Cache) *Resolver {
+func NewResolver(httpClient *httputil.Client, cache *Cache, imageProxySecret string) *Resolver {
 	return &Resolver{
 		client: httpClient,
 		cache:  cache,
@@ -92,8 +95,10 @@ func (r *Resolver) ResolveClientMetadata(ctx context.Context, clientID ClientID,
 	// SHOULD prefetch the file at logo_uri and cache it for the cache duration of the client metadata document
 	var cachedLogoUrl string
 	if response.LogoURI != nil && *response.LogoURI != "" {
-		// TODO: Cache logo https://github.com/varsotech/prochat-server/issues/10
-		cachedLogoUrl = *response.LogoURI
+		cachedLogoUrl = imageproxy.SignURL(r.imageProxySecret * response.LogoURI)
+		if err != nil {
+			return nil, fmt.Errorf("failed storing image to cache: %w", err)
+		}
 	}
 
 	clientMetadata := ClientMetadata{

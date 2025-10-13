@@ -12,6 +12,7 @@ import (
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
 	"github.com/varsotech/prochat-server/internal/html"
 	"github.com/varsotech/prochat-server/internal/oauth"
+	"github.com/varsotech/prochat-server/internal/pkg/filestore"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
 	"github.com/varsotech/prochat-server/internal/pkg/postgres"
 	"golang.org/x/sync/errgroup"
@@ -51,6 +52,16 @@ func Run() error {
 		return err
 	}
 
+	s3Bucket := os.Getenv("AWS_S3_BUCKET")
+	s3Client, err := filestore.NewS3Client(ctx, s3Bucket)
+	if err != nil {
+		slog.Error("failed initializing s3 client", "error", err)
+		return err
+	}
+
+	baseFileStore := filestore.NewScope(s3Client, os.Getenv("FILE_STORE_PREFIX"))
+	externalFileStore := filestore.NewScope(baseFileStore, "external")
+
 	htmlTemplate, err := html.NewTemplate()
 	if err != nil {
 		slog.Error("failed initializing html template", "error", err)
@@ -60,12 +71,12 @@ func Run() error {
 	authenticator := authhttp.NewAuthenticator(redisClient)
 	authHttpService := authhttp.New(postgresClient, redisClient, authenticator)
 	htmlRoutes := html.NewRoutes(htmlTemplate, authenticator)
-	oauthHttpRoutes := oauth.NewRoutes(redisClient, authenticator, httputil.NewClient(), htmlTemplate)
-	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpService, oauthHttpRoutes, htmlRoutes)
+	oauthHttpRoutes := oauth.NewRoutes(redisClient, externalFileStore, authenticator, httputil.NewClient(), htmlTemplate)
 
 	// Each routine must gracefully exit on context cancellation
 	errGroup, ctx := errgroup.WithContext(ctx)
 
+	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpService, oauthHttpRoutes, htmlRoutes)
 	errGroup.Go(httpServer.Serve)
 
 	err = errGroup.Wait()

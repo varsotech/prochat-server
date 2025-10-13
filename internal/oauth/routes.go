@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"html/template"
 	"io"
 	"net/http"
@@ -17,6 +18,10 @@ type Authenticator interface {
 
 type TemplateExecutor interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
+}
+
+type RemoteFileStore interface {
+	Store(ctx context.Context, key string) (string, error)
 }
 
 type Routes struct {
