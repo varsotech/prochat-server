@@ -17,10 +17,10 @@ type Service struct {
 	authenticator Authenticator
 }
 
-func New(pgClient *pgxpool.Pool, redisClient *redis.Client, authenticator Authenticator) *Service {
+func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
 	return &Service{
 		service:       service.New(pgClient, redisClient),
-		authenticator: authenticator,
+		authenticator: NewAuthenticator(redisClient),
 	}
 }
 

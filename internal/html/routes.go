@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
-	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 )
 
 type Authenticator interface {
@@ -19,13 +19,12 @@ type TemplateExecutor interface {
 type Routes struct {
 	templateExecutor TemplateExecutor
 	authenticator    Authenticator
-	sessionStore     *sessionstore.SessionStore
 }
 
-func NewRoutes(template TemplateExecutor, authenticator Authenticator) *Routes {
+func NewRoutes(template TemplateExecutor, redisClient *redis.Client) *Routes {
 	return &Routes{
 		templateExecutor: template,
-		authenticator:    authenticator,
+		authenticator:    authhttp.NewAuthenticator(redisClient),
 	}
 }
 

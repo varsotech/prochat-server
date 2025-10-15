@@ -1,0 +1,11 @@
+syntax = "proto3";
+package prochat.v1;
+
+message TokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int32 access_token_expires_in = 3;
+  int32 refresh_token_expires_in = 4;
+  string token_type = 5;
+  string scope = 6;
+}

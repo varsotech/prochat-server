@@ -5,7 +5,8 @@ import (
 )
 
 type AuthorizePage struct {
-	HeadInner components.HeadInner
-	Name      string
-	ClientID  string
+	HeadInner   components.HeadInner
+	Name        string
+	ClientID    string
+	QueryString string
 }

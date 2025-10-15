@@ -1,6 +1,6 @@
 # OAuth Client ID Metadata Document
 
-The `clientmetadata` package implements the [OAuth Client ID Metadata Document IEFT draft](https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/).
+The `clientmetadata` package implements the [OAuth Client ID Metadata Document IEFT draft](https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/).
 
 As stated in the draft, metadata parameters are the ones that can be found in the [OAuth Dynamic Client Registration Metadata OAuth
 Parameters registry](https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml#client-metadata).

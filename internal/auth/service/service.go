@@ -30,13 +30,13 @@ var UsernameTakenError = Error{ExternalMessage: "Username already taken", HTTPCo
 
 type Service struct {
 	postgresClient *postgres.Queries
-	authRepo       *sessionstore.SessionStore
+	sessionStore   *sessionstore.SessionStore
 }
 
 func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
 	return &Service{
 		postgresClient: postgres.New(pgClient),
-		authRepo:       sessionstore.New(redisClient),
+		sessionStore:   sessionstore.New(redisClient),
 	}
 }
 
@@ -52,7 +52,7 @@ func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
 //			return
 //		}
 //
-//		userId, found, err := h.authRepo.GetUserIdFromAccessToken(r.Context(), accessTokenCookie.Value)
+//		userId, found, err := h.sessionStore.GetUserIdFromAccessToken(r.Context(), accessTokenCookie.Value)
 //		if err != nil {
 //			slog.Error("error getting user id from access token", "error", err)
 //			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -74,7 +74,7 @@ type RefreshResult struct {
 }
 
 func (h Service) Refresh(ctx context.Context, refreshToken string) (RefreshResult, error) {
-	refreshTokenPairResult, err := h.authRepo.RefreshTokenPair(ctx, refreshToken)
+	refreshTokenPairResult, err := h.sessionStore.RefreshTokenPair(ctx, refreshToken)
 	if err != nil {
 		return RefreshResult{}, fmt.Errorf("failed refresh token pair: %w: %w", InternalError, err)
 	}
@@ -125,7 +125,7 @@ func (h Service) Login(ctx context.Context, params LoginParams) (LoginResult, er
 		return LoginResult{}, fmt.Errorf("incorrect password: %w", IncorrectCredentialsError)
 	}
 
-	issueTokenPairResult, err := h.authRepo.IssueTokenPair(ctx, user.ID)
+	issueTokenPairResult, err := h.sessionStore.IssueTokenPair(ctx, user.ID)
 	if err != nil {
 		return LoginResult{}, fmt.Errorf("failed issuing token pair for login: %w: %w", InternalError, err)
 	}
@@ -212,7 +212,7 @@ func (h Service) Register(ctx context.Context, params RegisterParams) (RegisterR
 		}
 	}
 
-	issueTokenPairResult, err := h.authRepo.IssueTokenPair(ctx, id)
+	issueTokenPairResult, err := h.sessionStore.IssueTokenPair(ctx, id)
 	if err != nil {
 		return RegisterResult{}, fmt.Errorf("failed issuing token pair for registration: %w: %w", InternalError, err)
 	}
@@ -228,7 +228,7 @@ type LogoutParams struct {
 }
 
 func (h Service) Logout(ctx context.Context, params LogoutParams) error {
-	accessTokenData, found, err := h.authRepo.GetAccessTokenData(ctx, params.AccessToken)
+	accessTokenData, found, err := h.sessionStore.GetAccessTokenData(ctx, params.AccessToken)
 	if err != nil {
 		return fmt.Errorf("failed to get user id from refresh token: %w: %w", InternalError, err)
 	}
@@ -236,7 +236,7 @@ func (h Service) Logout(ctx context.Context, params LogoutParams) error {
 		return UnauthorizedError
 	}
 
-	err = h.authRepo.DeleteTokenPair(ctx, params.AccessToken, accessTokenData.RefreshToken)
+	err = h.sessionStore.DeleteTokenPair(ctx, params.AccessToken, accessTokenData.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to delete token pair: %w: %w", InternalError, err)
 	}

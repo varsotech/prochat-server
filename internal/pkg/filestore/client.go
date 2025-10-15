@@ -11,7 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-// S3Client is a minimal wrapper around the S3 SDK that is simple to require in interfaces (doesn't return s3 structs)
+// S3Client is a minimal wrapper around the S3 SDK that is simple to require in interfaces (doesn't return s3 structs).
+// It is safe for concurrent use by multiple Go routines.
 type S3Client struct {
 	s3Client *s3.Client
 	bucket   string

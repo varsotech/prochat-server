@@ -6,7 +6,8 @@ import (
 	"path"
 )
 
-// Scope defines a file store that is scoped to a specific bucket and key prefix
+// Scope defines a file store that is scoped to a specific bucket and key prefix.
+// It is safe for concurrent use by multiple Go routines.
 type Scope struct {
 	store  FileStore
 	prefix string

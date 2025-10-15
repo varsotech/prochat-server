@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
 	"github.com/varsotech/prochat-server/internal/html"
+	"github.com/varsotech/prochat-server/internal/imageproxy"
 	"github.com/varsotech/prochat-server/internal/oauth"
 	"github.com/varsotech/prochat-server/internal/pkg/filestore"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
@@ -52,8 +53,7 @@ func Run() error {
 		return err
 	}
 
-	s3Bucket := os.Getenv("AWS_S3_BUCKET")
-	s3Client, err := filestore.NewS3Client(ctx, s3Bucket)
+	s3Client, err := filestore.NewS3Client(ctx, os.Getenv("AWS_S3_BUCKET"))
 	if err != nil {
 		slog.Error("failed initializing s3 client", "error", err)
 		return err
@@ -68,15 +68,22 @@ func Run() error {
 		return err
 	}
 
-	authenticator := authhttp.NewAuthenticator(redisClient)
-	authHttpService := authhttp.New(postgresClient, redisClient, authenticator)
-	htmlRoutes := html.NewRoutes(htmlTemplate, authenticator)
-	oauthHttpRoutes := oauth.NewRoutes(redisClient, externalFileStore, authenticator, httputil.NewClient(), htmlTemplate)
+	imageProxyConfig := &imageproxy.Config{
+		ImageProxyBaseUrl:    os.Getenv("IMAGE_PROXY_BASE_URL"),
+		ImageProxySecretKey:  os.Getenv("IMAGE_PROXY_SECRET_KEY"),
+		ImageProxySecretSalt: os.Getenv("IMAGE_PROXY_SECRET_SALT"),
+	}
+
+	// HTTP routes
+	authHttpRoutes := authhttp.New(postgresClient, redisClient)
+	htmlRoutes := html.NewRoutes(htmlTemplate, redisClient)
+	oauthHttpRoutes := oauth.NewRoutes(redisClient, htmlTemplate, imageProxyConfig)
+	imageProxyRoutes := imageproxy.NewRoutes(externalFileStore, imageProxyConfig)
 
 	// Each routine must gracefully exit on context cancellation
 	errGroup, ctx := errgroup.WithContext(ctx)
 
-	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpService, oauthHttpRoutes, htmlRoutes)
+	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpRoutes, oauthHttpRoutes, htmlRoutes, imageProxyRoutes)
 	errGroup.Go(httpServer.Serve)
 
 	err = errGroup.Wait()
