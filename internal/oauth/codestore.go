@@ -63,6 +63,9 @@ var ErrCodeNotFound = errors.New("code not found in redis")
 // DeleteCode deletes the authorization code and returns it. Returns ErrCodeNotFound if code was not found.
 func (r *RedisCodeStore) DeleteCode(ctx context.Context, code string) (*StoredCode, error) {
 	data, err := r.redisClient.Get(ctx, r.codeKey(code)).Result()
+	if errors.Is(err, redis.Nil) {
+		return nil, ErrCodeNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get code from redis: %w", err)
 	}

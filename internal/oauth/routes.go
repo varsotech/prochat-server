@@ -57,5 +57,5 @@ func NewRoutes(redisClient *redis.Client, template *template.Template, imageProx
 func (o *Routes) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/oauth/authorize", o.authorizeHandler)
 	mux.HandleFunc("POST /api/v1/oauth/authorize", o.authorizeSubmitHandler)
-	mux.HandleFunc("POST /api/v1/oauth/token", o.tokenHandler)
+	mux.HandleFunc("GET /api/v1/oauth/token", o.tokenHandler)
 }

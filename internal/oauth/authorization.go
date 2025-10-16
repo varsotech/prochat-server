@@ -43,8 +43,6 @@ func (o *Routes) authorizeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 	}
 
-	slog.Info("rawQuery", "rawQuery", rawQuery)
-
 	if err := o.template.ExecuteTemplate(w, "AuthorizePage", pages.AuthorizePage{
 		HeadInner: components.HeadInner{
 			Title:       "Authorization",
@@ -165,16 +163,13 @@ func (o *Routes) parseForm(r *http.Request) (*form, error) {
 }
 
 func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
-	authenticate, err := o.authenticator.Authenticate(r)
-	if errors.Is(err, authhttp.UnauthorizedError) {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	if err != nil {
-		slog.Error("failed to authenticate user", "error", err)
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		return
-	}
+	slog.Debug("token handler")
+
+	// TODO: Move this
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Credentials", "true")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 
 	q := r.URL.Query()
 
@@ -187,7 +182,7 @@ func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	code := q.Get("code")
 	if code == "" {
-		slog.Error("invalid code parameter", "code", q.Get("code"))
+		slog.Debug("invalid code parameter", "code", q.Get("code"))
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -224,7 +219,7 @@ func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issueTokenPairResult, err := o.tokenPairIssuer.IssueTokenPair(r.Context(), authenticate.UserId)
+	issueTokenPairResult, err := o.tokenPairIssuer.IssueTokenPair(r.Context(), storedCode.UserId)
 	if err != nil {
 		slog.Error("failed to issue token pair", "error", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
