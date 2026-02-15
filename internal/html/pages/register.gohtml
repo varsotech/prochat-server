@@ -70,10 +70,16 @@
                 const form = document.getElementById('register-form');
 
                 function safeRedirect(url, fallback) {
+                    if (!url) {
+                        window.location.href = fallback;
+                        return;
+                    }
+                    
                     const target = new URL(url, window.location.origin); // relative URLs allowed
                     if (target.origin !== window.location.origin) {
                         console.warn('Blocked unsafe redirect: ' + url + ' falling back to: ', fallback);
                         window.location.href = fallback;
+                        console.log("fallback2")
                         return;
                     }
                     window.location.href = target.href;

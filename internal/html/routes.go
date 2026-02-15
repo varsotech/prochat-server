@@ -1,35 +1,36 @@
 package html
 
 import (
-	"embed"
-	"fmt"
-	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
-	"html/template"
+	"io"
 	"net/http"
+
+	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
+	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 )
 
-type Service struct {
-	template        *template.Template
-	authHTTPService *authhttp.Service
+type Authenticator interface {
+	Authenticate(r *http.Request) (authhttp.AuthenticateResult, error)
 }
 
-func NewRoutes(authHTTPService *authhttp.Service) (*Service, error) {
-	templateManager, err := template.ParseFS(templateFS, "internal/components/*.gohtml", "internal/pages/*.gohtml")
-	if err != nil {
-		return nil, fmt.Errorf("could not load templates: %w", err)
+type TemplateExecutor interface {
+	ExecuteTemplate(wr io.Writer, name string, data any) error
+}
+
+type Routes struct {
+	templateExecutor TemplateExecutor
+	authenticator    Authenticator
+	sessionStore     *sessionstore.SessionStore
+}
+
+func NewRoutes(template TemplateExecutor, authenticator Authenticator) *Routes {
+	return &Routes{
+		templateExecutor: template,
+		authenticator:    authenticator,
 	}
-
-	return &Service{
-		template:        templateManager,
-		authHTTPService: authHTTPService,
-	}, nil
 }
 
-//go:embed internal/components/*.gohtml internal/pages/*.gohtml
-var templateFS embed.FS
-
-func (o *Service) RegisterRoutes(mux *http.ServeMux) {
+func (o *Routes) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /", o.home)
 	mux.HandleFunc("GET /login", o.login)
 	mux.HandleFunc("GET /register", o.register)
-	mux.HandleFunc("GET /", o.home)
 }

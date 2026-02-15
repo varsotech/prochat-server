@@ -1,22 +1,26 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
 	"github.com/varsotech/prochat-server/internal/auth/service"
-	"net/http"
 )
 
-type Service struct {
-	service  *service.Service
-	authRepo *authrepo.Repo
+type Authenticator interface {
+	Authenticate(r *http.Request) (AuthenticateResult, error)
 }
 
-func New(pgClient *pgxpool.Pool, redisClient *redis.Client) *Service {
+type Service struct {
+	service       *service.Service
+	authenticator Authenticator
+}
+
+func New(pgClient *pgxpool.Pool, redisClient *redis.Client, authenticator Authenticator) *Service {
 	return &Service{
-		service:  service.New(pgClient, redisClient),
-		authRepo: authrepo.New(redisClient),
+		service:       service.New(pgClient, redisClient),
+		authenticator: authenticator,
 	}
 }
 

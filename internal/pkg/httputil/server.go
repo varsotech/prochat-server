@@ -1,4 +1,4 @@
-package httpserver
+package httputil
 
 import (
 	"context"
@@ -18,7 +18,7 @@ type Server struct {
 	registrars []Registrar
 }
 
-func New(ctx context.Context, port string, registrars ...Registrar) *Server {
+func NewServer(ctx context.Context, port string, registrars ...Registrar) *Server {
 	return &Server{
 		ctx:        ctx,
 		port:       port,

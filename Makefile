@@ -16,6 +16,21 @@ install-gotestsum:
 		go install gotest.tools/gotestsum@v1.13.0; \
   	fi
 
+.PHONY: install-goimports
+install-goimports:
+	@if [ ! -x "$(shell go env GOPATH)/bin/gotestsum" ]; then \
+		go install golang.org/x/tools/cmd/goimports@latest; \
+  	fi
+
+.PHONY: install-sqlc
+install-sqlc:
+	@if [ ! -x "$(shell go env GOPATH)/bin/sqlc" ]; then \
+		go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest; \
+  	fi
+
+.PHONY: install-sqlc
+install-deps: install-buf install-gotestsum install-goimports install-sqlc
+
 .PHONY: generate
 generate: install-buf
 	go generate ./...
@@ -27,3 +42,7 @@ test: install-gotestsum
 .PHONY: test-watch
 test-watch: install-gotestsum
 	@gotestsum --format testname --watch --watch-clear
+	
+.PHONY: lint
+lint: install-goimports
+	@goimports -w .

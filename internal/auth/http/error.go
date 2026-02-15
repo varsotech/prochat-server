@@ -2,9 +2,10 @@ package http
 
 import (
 	"errors"
-	"github.com/varsotech/prochat-server/internal/auth/service"
 	"log/slog"
 	"net/http"
+
+	"github.com/varsotech/prochat-server/internal/auth/service"
 )
 
 func writeServiceError(w http.ResponseWriter, err error) {

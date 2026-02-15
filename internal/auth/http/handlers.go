@@ -2,13 +2,14 @@ package http
 
 import (
 	"errors"
-	"github.com/varsotech/prochat-server/internal/auth/internal/authrepo"
-	"github.com/varsotech/prochat-server/internal/auth/service"
-	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
-	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"log/slog"
 	"net/http"
+
+	"github.com/varsotech/prochat-server/internal/auth/service"
+	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
+	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 const (
@@ -141,7 +142,7 @@ func (s *Service) registerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) logoutHandler(w http.ResponseWriter, r *http.Request) {
-	accessTokenData, err := s.Authenticate(r)
+	accessTokenData, err := s.authenticator.Authenticate(r)
 	if errors.Is(err, UnauthorizedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -170,8 +171,8 @@ func (s *Service) logoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
-	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, accessTokenCookiePath, authrepo.AccessTokenMaxAge)
-	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, refreshTokenCookiePath, authrepo.RefreshTokenMaxAge)
+	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, accessTokenCookiePath, sessionstore.AccessTokenMaxAge)
+	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, refreshTokenCookiePath, sessionstore.RefreshTokenMaxAge)
 
 	http.SetCookie(w, &accessTokenCookie)
 	http.SetCookie(w, &refreshTokenCookie)

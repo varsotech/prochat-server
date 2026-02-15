@@ -4,9 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"golang.org/x/crypto/argon2"
 	"log/slog"
 	"strings"
+
+	"golang.org/x/crypto/argon2"
 )
 
 type Argon2Params struct {
