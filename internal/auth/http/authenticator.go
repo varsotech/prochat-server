@@ -10,7 +10,7 @@ import (
 	"github.com/varsotech/prochat-server/internal/auth/sessionstore"
 )
 
-var UnauthorizedError = fmt.Errorf("authentication is unauthorized")
+var UnauthorizedError = errors.New("authentication is unauthorized")
 
 type AuthenticateResult struct {
 	UserId       uuid.UUID

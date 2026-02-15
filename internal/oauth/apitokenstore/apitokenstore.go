@@ -33,7 +33,7 @@ type RefreshTokenData struct {
 	AccessToken string    `json:"access_token"`
 }
 
-var RefreshTokenNotFoundError = fmt.Errorf("refresh token not found")
+var RefreshTokenNotFoundError = errors.New("refresh token not found")
 
 type IssueTokenPairResult struct {
 	AccessToken           string

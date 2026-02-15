@@ -111,7 +111,7 @@ func (c Response) Validate() error {
 		}
 
 		if policyUri.Scheme != "https" {
-			return fmt.Errorf("invalid policy uri provided: only https is supported")
+			return errors.New("invalid policy uri provided: only https is supported")
 		}
 	}
 
