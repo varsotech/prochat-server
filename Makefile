@@ -22,6 +22,15 @@ install-goimports:
 		go install golang.org/x/tools/cmd/goimports@latest; \
   	fi
 
+.PHONY: install-sqlc
+install-sqlc:
+	@if [ ! -x "$(shell go env GOPATH)/bin/sqlc" ]; then \
+		go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest; \
+  	fi
+
+.PHONY: install-sqlc
+install-deps: install-buf install-gotestsum install-goimports install-sqlc
+
 .PHONY: generate
 generate: install-buf
 	go generate ./...
