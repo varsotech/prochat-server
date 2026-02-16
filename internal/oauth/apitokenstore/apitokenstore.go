@@ -42,15 +42,15 @@ type IssueTokenPairResult struct {
 	RefreshTokenExpiresIn int32
 }
 
-type SessionStore struct {
+type TokenStore struct {
 	redisClient *redis.Client
 }
 
-func New(redisClient *redis.Client) *SessionStore {
-	return &SessionStore{redisClient: redisClient}
+func New(redisClient *redis.Client) *TokenStore {
+	return &TokenStore{redisClient: redisClient}
 }
 
-func (r *SessionStore) IssueTokenPair(ctx context.Context, userId uuid.UUID) (IssueTokenPairResult, error) {
+func (r *TokenStore) IssueTokenPair(ctx context.Context, userId uuid.UUID) (IssueTokenPairResult, error) {
 	accessTokenBytes := make([]byte, accessTokenLength)
 	_, _ = rand.Read(accessTokenBytes)
 	accessToken := base64.StdEncoding.EncodeToString(accessTokenBytes)
@@ -77,7 +77,7 @@ func (r *SessionStore) IssueTokenPair(ctx context.Context, userId uuid.UUID) (Is
 	}, nil
 }
 
-func (r *SessionStore) storeAccessToken(ctx context.Context, userId uuid.UUID, accessToken, refreshToken string) error {
+func (r *TokenStore) storeAccessToken(ctx context.Context, userId uuid.UUID, accessToken, refreshToken string) error {
 	data := AccessTokenData{
 		UserId:       userId,
 		RefreshToken: refreshToken,
@@ -99,7 +99,7 @@ func (r *SessionStore) storeAccessToken(ctx context.Context, userId uuid.UUID, a
 	return nil
 }
 
-func (r *SessionStore) storeRefreshToken(ctx context.Context, userId uuid.UUID, accessToken, refreshToken string) error {
+func (r *TokenStore) storeRefreshToken(ctx context.Context, userId uuid.UUID, accessToken, refreshToken string) error {
 	data := RefreshTokenData{
 		UserId:      userId,
 		AccessToken: accessToken,
@@ -120,7 +120,7 @@ func (r *SessionStore) storeRefreshToken(ctx context.Context, userId uuid.UUID, 
 	return nil
 }
 
-func (r *SessionStore) GetRefreshTokenData(ctx context.Context, refreshToken string) (*RefreshTokenData, bool, error) {
+func (r *TokenStore) GetRefreshTokenData(ctx context.Context, refreshToken string) (*RefreshTokenData, bool, error) {
 	dataStr, err := r.redisClient.Get(ctx, r.formatRefreshToken(refreshToken)).Result()
 	if errors.Is(err, redis.Nil) {
 		return nil, false, nil
@@ -138,7 +138,7 @@ func (r *SessionStore) GetRefreshTokenData(ctx context.Context, refreshToken str
 	return &refreshTokenData, true, nil
 }
 
-func (r *SessionStore) GetAccessTokenData(ctx context.Context, accessToken string) (AccessTokenData, bool, error) {
+func (r *TokenStore) GetAccessTokenData(ctx context.Context, accessToken string) (AccessTokenData, bool, error) {
 	dataStr, err := r.redisClient.Get(ctx, r.formatAccessToken(accessToken)).Result()
 	if errors.Is(err, redis.Nil) {
 		return AccessTokenData{}, false, nil
@@ -163,7 +163,7 @@ type RefreshTokenPairResult struct {
 
 // RefreshTokenPair issues new access and refresh tokens, then deletes the old access and refresh token.
 // If the refresh token was not found, RefreshTokenNotFoundError is returned.
-func (r *SessionStore) RefreshTokenPair(ctx context.Context, oldRefreshToken string) (RefreshTokenPairResult, error) {
+func (r *TokenStore) RefreshTokenPair(ctx context.Context, oldRefreshToken string) (RefreshTokenPairResult, error) {
 	refreshTokenData, found, err := r.GetRefreshTokenData(ctx, oldRefreshToken)
 	if err != nil {
 		return RefreshTokenPairResult{}, fmt.Errorf("failed to get user id from refresh token: %w", err)
@@ -189,7 +189,7 @@ func (r *SessionStore) RefreshTokenPair(ctx context.Context, oldRefreshToken str
 	}, nil
 }
 
-func (r *SessionStore) DeleteTokenPair(ctx context.Context, accessToken, refreshToken string) error {
+func (r *TokenStore) DeleteTokenPair(ctx context.Context, accessToken, refreshToken string) error {
 	_, err := r.redisClient.Del(ctx, r.formatAccessToken(accessToken)).Result()
 	if err != nil && !errors.Is(err, redis.Nil) { // Allow access token to not exist on deletion
 		return fmt.Errorf("failed to delete access token: %w", err)
@@ -203,10 +203,10 @@ func (r *SessionStore) DeleteTokenPair(ctx context.Context, accessToken, refresh
 	return nil
 }
 
-func (r *SessionStore) formatAccessToken(token string) string {
+func (r *TokenStore) formatAccessToken(token string) string {
 	return fmt.Sprintf("oauth:access:%s", token)
 }
 
-func (r *SessionStore) formatRefreshToken(token string) string {
+func (r *TokenStore) formatRefreshToken(token string) string {
 	return fmt.Sprintf("oauth:refresh:%s", token)
 }

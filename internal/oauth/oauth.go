@@ -18,7 +18,7 @@ import (
 
 func (o *Routes) authorizeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := o.authenticator.Authenticate(r)
-	if errors.Is(err, authhttp.UnauthorizedError) {
+	if errors.Is(err, authhttp.UnauthenticatedError) {
 		// TODO: Should login redirection happen client side like now? Or should we do it in the login handler and validate that its same origin?
 		http.Redirect(w, r, fmt.Sprintf("/login?redirectTo=%s", url.QueryEscape(r.URL.String())), http.StatusFound)
 		return
@@ -60,7 +60,7 @@ func (o *Routes) authorizeHandler(w http.ResponseWriter, r *http.Request) {
 
 func (o *Routes) authorizeSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	authenticate, err := o.authenticator.Authenticate(r)
-	if errors.Is(err, authhttp.UnauthorizedError) {
+	if errors.Is(err, authhttp.UnauthenticatedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -189,7 +189,7 @@ func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	storedCode, err := o.codeStore.DeleteCode(r.Context(), code)
 	if errors.Is(err, ErrCodeNotFound) {
-		slog.Debug("code not found")
+		slog.Debug("code not found", "error", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}

@@ -38,7 +38,7 @@ func (r *RedisCodeStore) InsertCode(ctx context.Context, userId uuid.UUID, clien
 
 	codeBytes := make([]byte, codeLength)
 	_, _ = rand.Read(codeBytes)
-	code := base64.StdEncoding.EncodeToString(codeBytes)
+	code := base64.URLEncoding.EncodeToString(codeBytes)
 
 	data, err := json.Marshal(StoredCode{
 		Code:             code,

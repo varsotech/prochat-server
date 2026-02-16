@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
+	"github.com/varsotech/prochat-server/internal/homeserver"
 	"github.com/varsotech/prochat-server/internal/html"
 	"github.com/varsotech/prochat-server/internal/imageproxy"
 	"github.com/varsotech/prochat-server/internal/oauth"
@@ -78,12 +79,13 @@ func Run() error {
 	authHttpRoutes := authhttp.New(postgresClient, redisClient)
 	htmlRoutes := html.NewRoutes(htmlTemplate, redisClient)
 	oauthHttpRoutes := oauth.NewRoutes(redisClient, htmlTemplate, imageProxyConfig)
+	homeserverRoutes := homeserver.NewRoutes(redisClient)
 	imageProxyRoutes := imageproxy.NewRoutes(externalFileStore, imageProxyConfig)
 
 	// Each routine must gracefully exit on context cancellation
 	errGroup, ctx := errgroup.WithContext(ctx)
 
-	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpRoutes, oauthHttpRoutes, htmlRoutes, imageProxyRoutes)
+	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpRoutes, oauthHttpRoutes, htmlRoutes, homeserverRoutes, imageProxyRoutes)
 	errGroup.Go(httpServer.Serve)
 
 	err = errGroup.Wait()
