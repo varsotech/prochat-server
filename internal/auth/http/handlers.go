@@ -143,7 +143,7 @@ func (s *Service) registerHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	accessTokenData, err := s.authenticator.Authenticate(r)
-	if errors.Is(err, UnauthorizedError) {
+	if errors.Is(err, UnauthenticatedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}

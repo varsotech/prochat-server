@@ -17,7 +17,7 @@ func (o *Routes) home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := o.authenticator.Authenticate(r)
-	if errors.Is(err, authhttp.UnauthorizedError) {
+	if errors.Is(err, authhttp.UnauthenticatedError) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}

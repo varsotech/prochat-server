@@ -10,24 +10,38 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+	"github.com/varsotech/prochat-server/internal/imageproxy"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
 )
 
-var ErrNotAccessible = errors.New("client not accessible")
+var ErrBadRequest = errors.New("client id is not a valid accessible url to a client metadata document")
 
-type Resolver struct {
-	client *httputil.Client
-	cache  *Cache
+type Cache interface {
+	SetClientMetadata(ctx context.Context, storedClientMetadata *ClientMetadata, ttl time.Duration) error
+	GetClientMetadata(ctx context.Context, clientId string) (*ClientMetadata, bool, error)
 }
 
-func NewResolver(httpClient *httputil.Client, cache *Cache) *Resolver {
+type URLSigner interface {
+	GenerateSignedURL(inputUrl string) string
+}
+
+type Resolver struct {
+	client    *httputil.Client
+	cache     Cache
+	urlSigner URLSigner
+}
+
+func NewResolver(redisClient *redis.Client, imageProxyConfig *imageproxy.Config) *Resolver {
 	return &Resolver{
-		client: httpClient,
-		cache:  cache,
+		client:    httputil.NewClient(),
+		cache:     NewCache(redisClient),
+		urlSigner: imageproxy.NewSigner(imageProxyConfig),
 	}
 }
 
 // ResolveClientMetadata fetches and validates OAuth client metadata document based on identifier in URL format.
+// Returns ErrBadRequest for invalid or inaccessible URLs and invalid documents.
 // See: https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/
 func (r *Resolver) ResolveClientMetadata(ctx context.Context, clientID ClientID, ttl time.Duration) (*ClientMetadata, error) {
 	// Aligning with the ATProto implementation, an exception is made for these localhost paths to enable local
@@ -56,17 +70,17 @@ func (r *Resolver) ResolveClientMetadata(ctx context.Context, clientID ClientID,
 
 	req, err := http.NewRequestWithContext(ctx, "GET", clientID.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create http request: %w", err)
+		return nil, fmt.Errorf("%w: failed to create http request: %w", ErrBadRequest, err)
 	}
 
 	resp, err := r.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to execute http request: %w", ErrNotAccessible, err)
+		return nil, fmt.Errorf("%w: failed to execute http request: %w", ErrBadRequest, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: invalid http status code: %d", ErrNotAccessible, resp.StatusCode)
+		return nil, fmt.Errorf("%w: invalid http status code: %d", ErrBadRequest, resp.StatusCode)
 	}
 
 	// SHOULD limit the response size when fetching the client metadata document.
@@ -76,24 +90,23 @@ func (r *Resolver) ResolveClientMetadata(ctx context.Context, clientID ClientID,
 
 	var response Response
 	if err := json.NewDecoder(limitedBody).Decode(&response); err != nil {
-		return nil, fmt.Errorf("invalid client metadata document: %w", err)
+		return nil, fmt.Errorf("%w: invalid client metadata document: %w", ErrBadRequest, err)
 	}
 
 	err = response.Validate()
 	if err != nil {
-		return nil, fmt.Errorf("invalid client metadata: %w", err)
+		return nil, fmt.Errorf("%w: invalid client metadata: %w", ErrBadRequest, err)
 	}
 
 	// MUST match the URL of the document using simple string comparison as defined in RFC3986 Section 6.2.1
 	if response.ClientID != clientID.String() {
-		return nil, fmt.Errorf("client id does not match url used to fetch it")
+		return nil, fmt.Errorf("%w: client id does not match url used to fetch it", ErrBadRequest)
 	}
 
 	// SHOULD prefetch the file at logo_uri and cache it for the cache duration of the client metadata document
 	var cachedLogoUrl string
 	if response.LogoURI != nil && *response.LogoURI != "" {
-		// TODO: Cache logo https://github.com/varsotech/prochat-server/issues/10
-		cachedLogoUrl = *response.LogoURI
+		cachedLogoUrl = r.urlSigner.GenerateSignedURL(*response.LogoURI)
 	}
 
 	clientMetadata := ClientMetadata{
@@ -103,8 +116,8 @@ func (r *Resolver) ResolveClientMetadata(ctx context.Context, clientID ClientID,
 
 	err = r.cache.SetClientMetadata(ctx, &clientMetadata, ttl)
 	if err != nil {
-		// Best effort
-		slog.Error("failed to set client metadata in cache", "error", err, "client_id", clientID)
+		// Fail here to avoid attacks skipping our cache forcing us to use a lot of bandwidth
+		return nil, fmt.Errorf("failed to set client metadata in cache: %w", err)
 	}
 
 	return &clientMetadata, nil

@@ -26,6 +26,7 @@
             #message {
                 height: 40px;
                 font-size: 0.8rem;
+                color: red;
             }
 
             a {
@@ -35,47 +36,15 @@
     </head>
     <body>
         <div class="page-container">
-            <form id="authorize-form">
-                <span id="message"></span>
+            <form id="authorize-form" method="POST">
                 <h2>{{.Name}}</h2>
                 <a href="{{.ClientID}}">{{.ClientID}}</a>
                 <button type="submit">Authorize App</button>
             </form>
             <script>
-                // Make form send JSON
-                const form = document.getElementById('authorize-form');
-
-                // Handle form submission
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault(); // prevent normal form submission
-
-                    const messageEl = document.getElementById('message');
-
-                    messageEl.style.color = 'black';
-                    messageEl.textContent = '';
-
-                    try {
-                        const response = await fetch('/api/v1/auth/logout', {
-                            method: 'POST',
-                        });
-
-                        if (!response.ok) {
-                            let errorText = await response.text();
-                            if (!errorText) {
-                                errorText = `${response.status}`
-                            }
-                            messageEl.style.color = 'red';
-                            messageEl.textContent = errorText;
-                            return
-                        }
-
-                        messageEl.style.color = 'green';
-                        messageEl.textContent = 'Successfully logged out, redirecting...';
-                        window.location.href = "/login"
-                    } catch (err) {
-                        messageEl.style.color = 'red';
-                        messageEl.textContent = err.message;
-                    }
+                window.addEventListener("DOMContentLoaded", async (e) => {
+                    const form = document.getElementById("authorize-form")
+                    form.action = "/api/v1/oauth/authorize?{{.QueryString}}"
                 });
             </script>
         </div>

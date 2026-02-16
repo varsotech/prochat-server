@@ -111,24 +111,24 @@ func (c Response) Validate() error {
 		}
 
 		if policyUri.Scheme != "https" {
-			return fmt.Errorf("invalid policy uri provided: only https is supported")
+			return errors.New("invalid policy uri provided: only https is supported")
 		}
 	}
 
 	return nil
 }
 
-var ErrInvalidClientID = errors.New("invalid client ID")
+var errInvalidClientID = errors.New("invalid client ID")
 
 // Internal errors defined for test assertion
-var errClientIDEmpty = fmt.Errorf("%w: cannot be empty", ErrInvalidClientID)
-var errClientIDMissingHTTPS = fmt.Errorf("%w: must start with https://", ErrInvalidClientID)
-var errClientIDInvalidURL = fmt.Errorf("%w: invalid url", ErrInvalidClientID)
-var errClientIDInvalidHost = fmt.Errorf("%w: invalid url host", ErrInvalidClientID)
-var errClientIDNoURLPath = fmt.Errorf("%w: missing url path", ErrInvalidClientID)
-var errClientIDNoDotPathSegment = fmt.Errorf("%w: dot segments not allowed in path", ErrInvalidClientID)
-var errClientIDNoFragment = fmt.Errorf("%w: fragment component not alloewd in path", ErrInvalidClientID)
-var errClientIDNoQueryParams = fmt.Errorf("%w: query parameters not allowed", ErrInvalidClientID)
+var errClientIDEmpty = fmt.Errorf("%w: cannot be empty", errInvalidClientID)
+var errClientIDMissingHTTPS = fmt.Errorf("%w: must start with https://", errInvalidClientID)
+var errClientIDInvalidURL = fmt.Errorf("%w: invalid url", errInvalidClientID)
+var errClientIDInvalidHost = fmt.Errorf("%w: invalid url host", errInvalidClientID)
+var errClientIDNoURLPath = fmt.Errorf("%w: missing url path", errInvalidClientID)
+var errClientIDNoDotPathSegment = fmt.Errorf("%w: dot segments not allowed in path", errInvalidClientID)
+var errClientIDNoFragment = fmt.Errorf("%w: fragment component not alloewd in path", errInvalidClientID)
+var errClientIDNoQueryParams = fmt.Errorf("%w: query parameters not allowed", errInvalidClientID)
 
 type ClientID string
 
@@ -187,14 +187,13 @@ func NewClientID(c string, allowLocalhost bool) (ClientID, error) {
 
 type RedirectURI string
 
-var ErrInvalidRedirectURI = errors.New("invalid redirect uri")
+var errInvalidRedirectURI = errors.New("invalid redirect uri")
 
-var errRedirectURIEmpty = fmt.Errorf("%w: cannot be empty", ErrInvalidRedirectURI)
-var errRedirectURIInvalidURI = fmt.Errorf("%w: invalid uri", ErrInvalidRedirectURI)
-var errRedirectURIInvalidHost = fmt.Errorf("%w: invalid host", ErrInvalidRedirectURI)
-var errRedirectURIInvalidSchema = fmt.Errorf("%w: invalid schema", ErrInvalidRedirectURI)
-var errRedirectURINoDotPathSegment = fmt.Errorf("%w: dot segments not allowed in path", ErrInvalidRedirectURI)
-var errRedirectURINoFragment = fmt.Errorf("%w: fragment component not alloewd in path", ErrInvalidRedirectURI)
+var errRedirectURIEmpty = fmt.Errorf("%w: cannot be empty", errInvalidRedirectURI)
+var errRedirectURIInvalidURI = fmt.Errorf("%w: invalid uri", errInvalidRedirectURI)
+var errRedirectURIInvalidHost = fmt.Errorf("%w: invalid host", errInvalidRedirectURI)
+var errRedirectURINoDotPathSegment = fmt.Errorf("%w: dot segments not allowed in path", errInvalidRedirectURI)
+var errRedirectURINoFragment = fmt.Errorf("%w: fragment component not alloewd in path", errInvalidRedirectURI)
 
 func ValidateRedirectURI(redirectUri string) error {
 	if redirectUri == "" {
@@ -208,10 +207,6 @@ func ValidateRedirectURI(redirectUri string) error {
 
 	if parsedUrl.Host == "" {
 		return errRedirectURIInvalidHost
-	}
-
-	if parsedUrl.Scheme != "https" {
-		return errRedirectURIInvalidSchema
 	}
 
 	// MUST NOT contain single-dot or double-dot path segments

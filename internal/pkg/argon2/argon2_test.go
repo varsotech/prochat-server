@@ -11,7 +11,7 @@ import (
 func TestDecodeHash(t *testing.T) {
 	salt := []byte("1234567890abcdef")                 // 16 bytes
 	hash := []byte("12345678901234567890123456789012") // 32 bytes
-
+	
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 	validEncoded := fmt.Sprintf("$argon2id$v=%d$m=65536,t=3,p=2$%s$%s", argon2.Version, b64Salt, b64Hash)
