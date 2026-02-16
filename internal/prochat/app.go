@@ -9,14 +9,12 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
-	authhttp "github.com/varsotech/prochat-server/internal/auth/http"
 	"github.com/varsotech/prochat-server/internal/homeserver"
-	"github.com/varsotech/prochat-server/internal/html"
+	html2 "github.com/varsotech/prochat-server/internal/homeserver/html"
 	"github.com/varsotech/prochat-server/internal/imageproxy"
-	"github.com/varsotech/prochat-server/internal/oauth"
 	"github.com/varsotech/prochat-server/internal/pkg/filestore"
+	"github.com/varsotech/prochat-server/internal/pkg/homeserverdb"
 	"github.com/varsotech/prochat-server/internal/pkg/httputil"
-	"github.com/varsotech/prochat-server/internal/pkg/postgres"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -39,9 +37,9 @@ func Run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	postgresClient, err := postgres.Connect(ctx, os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_SSL_MODE"))
+	postgresClient, err := homeserverdb.Connect(ctx, os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_SSL_MODE"))
 	if err != nil {
-		slog.Error("failed initializing postgres client", "error", err, "host", os.Getenv("POSTGRES_HOST"), "user", os.Getenv("POSTGRES_USER"), "db", os.Getenv("POSTGRES_DB"), "ssl_mode", os.Getenv("POSTGRES_SSL_MODE"))
+		slog.Error("failed initializing homeserverdb client", "error", err, "host", os.Getenv("POSTGRES_HOST"), "user", os.Getenv("POSTGRES_USER"), "db", os.Getenv("POSTGRES_DB"), "ssl_mode", os.Getenv("POSTGRES_SSL_MODE"))
 		return err
 	}
 
@@ -63,7 +61,7 @@ func Run() error {
 	baseFileStore := filestore.NewScope(s3Client, os.Getenv("FILE_STORE_PREFIX"))
 	externalFileStore := filestore.NewScope(baseFileStore, "external")
 
-	htmlTemplate, err := html.NewTemplate()
+	htmlTemplate, err := html2.NewTemplate()
 	if err != nil {
 		slog.Error("failed initializing html template", "error", err)
 		return err
@@ -76,16 +74,13 @@ func Run() error {
 	}
 
 	// HTTP routes
-	authHttpRoutes := authhttp.New(postgresClient, redisClient)
-	htmlRoutes := html.NewRoutes(htmlTemplate, redisClient)
-	oauthHttpRoutes := oauth.NewRoutes(redisClient, htmlTemplate, imageProxyConfig)
-	homeserverRoutes := homeserver.NewRoutes(redisClient)
+	homeserverRoutes := homeserver.NewRoutes(redisClient, postgresClient, htmlTemplate, imageProxyConfig, os.Getenv("HOMESERVER_HOST"))
 	imageProxyRoutes := imageproxy.NewRoutes(externalFileStore, imageProxyConfig)
 
 	// Each routine must gracefully exit on context cancellation
 	errGroup, ctx := errgroup.WithContext(ctx)
 
-	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), authHttpRoutes, oauthHttpRoutes, htmlRoutes, homeserverRoutes, imageProxyRoutes)
+	httpServer := httputil.NewServer(ctx, os.Getenv("HTTP_SERVER_PORT"), homeserverRoutes, imageProxyRoutes)
 	errGroup.Go(httpServer.Serve)
 
 	err = errGroup.Wait()

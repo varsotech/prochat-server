@@ -1,0 +1,36 @@
+syntax = "proto3";
+package homeserver.v1;
+
+message Message {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_ADD_USER_SERVER = 1;
+    TYPE_GET_USER_SERVERS = 2;
+  }
+
+  message Error {
+    string message = 1;
+  }
+
+  Type type = 1;
+  bytes payload = 2;
+  Error error = 3;
+}
+
+message AddUserServerRequest {
+  string host = 1;
+}
+
+message AddUserServerResponse {
+}
+
+message GetUserServersRequest {
+}
+
+message GetUserServersResponse {
+  message Server {
+    string host = 1;
+  }
+
+  repeated Server servers = 1;
+}
