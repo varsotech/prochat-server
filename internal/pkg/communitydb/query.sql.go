@@ -25,7 +25,7 @@ func (q *Queries) GetMemberByUserAddress(ctx context.Context, userAddress string
 const upsertMember = `-- name: UpsertMember :one
 INSERT INTO members (id, user_address)
 VALUES ($1, $2)
-    ON CONFLICT (id, user_address) DO NOTHING
+    ON CONFLICT (user_address) DO NOTHING
     RETURNING id, user_address, created_at
 `
 

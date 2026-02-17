@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	communityserverv1 "github.com/varsotech/prochat-server/internal/models/gen/communityserver/v1"
 	"github.com/varsotech/prochat-server/internal/pkg/communitydb"
 )
@@ -27,7 +28,7 @@ func (o *Routes) joinServer(w http.ResponseWriter, r *http.Request) {
 		ID:          uuid.New(),
 		UserAddress: auth.UserAddress,
 	})
-	if err != nil {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		slog.Info("failed to upsert member", "error", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return

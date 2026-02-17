@@ -238,6 +238,7 @@ func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
 		Scope:                 "", // TODO: Scopes
 	})
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
 
@@ -248,4 +249,5 @@ func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
+
 }
