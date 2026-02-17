@@ -421,10 +421,11 @@ func (x *GetIdentityTokenResponse) GetToken() string {
 }
 
 type JoinCommunityServerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Host          string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Host                 string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	JoinDefaultCommunity bool                   `protobuf:"varint,2,opt,name=join_default_community,json=joinDefaultCommunity,proto3" json:"join_default_community,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *JoinCommunityServerRequest) Reset() {
@@ -462,6 +463,13 @@ func (x *JoinCommunityServerRequest) GetHost() string {
 		return x.Host
 	}
 	return ""
+}
+
+func (x *JoinCommunityServerRequest) GetJoinDefaultCommunity() bool {
+	if x != nil {
+		return x.JoinDefaultCommunity
+	}
+	return false
 }
 
 type JoinCommunityServerResponse struct {
@@ -627,9 +635,10 @@ const file_homeserver_v1_homeserver_proto_rawDesc = "" +
 	"public_key\x18\x01 \x01(\tR\tpublicKey\"\x19\n" +
 	"\x17GetIdentityTokenRequest\"0\n" +
 	"\x18GetIdentityTokenResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"0\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"f\n" +
 	"\x1aJoinCommunityServerRequest\x12\x12\n" +
-	"\x04host\x18\x01 \x01(\tR\x04host\"\x1d\n" +
+	"\x04host\x18\x01 \x01(\tR\x04host\x124\n" +
+	"\x16join_default_community\x18\x02 \x01(\bR\x14joinDefaultCommunity\"\x1d\n" +
 	"\x1bJoinCommunityServerResponseB\xca\x01\n" +
 	"\x11com.homeserver.v1B\x0fHomeserverProtoP\x01ZOgithub.com/varso/protchat-server/internal/models/gen/homeserver/v1;homeserverv1\xa2\x02\x03HXX\xaa\x02\rHomeserver.V1\xca\x02\rHomeserver\\V1\xe2\x02\x19Homeserver\\V1\\GPBMetadata\xea\x02\x0eHomeserver::V1b\x06proto3"
 

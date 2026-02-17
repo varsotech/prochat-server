@@ -102,9 +102,10 @@ func (x *GetUserCommunitiesResponse) GetCommunities() []*GetUserCommunitiesRespo
 }
 
 type JoinServerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	JoinDefaultCommunity bool                   `protobuf:"varint,1,opt,name=join_default_community,json=joinDefaultCommunity,proto3" json:"join_default_community,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *JoinServerRequest) Reset() {
@@ -135,6 +136,13 @@ func (x *JoinServerRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use JoinServerRequest.ProtoReflect.Descriptor instead.
 func (*JoinServerRequest) Descriptor() ([]byte, []int) {
 	return file_communityserver_v1_communityserver_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *JoinServerRequest) GetJoinDefaultCommunity() bool {
+	if x != nil {
+		return x.JoinDefaultCommunity
+	}
+	return false
 }
 
 type JoinServerResponse struct {
@@ -235,8 +243,9 @@ const file_communityserver_v1_communityserver_proto_rawDesc = "" +
 	"\vcommunities\x18\x01 \x03(\v28.communityserver.v1.GetUserCommunitiesResponse.CommunityR\vcommunities\x1a/\n" +
 	"\tCommunity\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\x13\n" +
-	"\x11JoinServerRequest\"\x14\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"I\n" +
+	"\x11JoinServerRequest\x124\n" +
+	"\x16join_default_community\x18\x01 \x01(\bR\x14joinDefaultCommunity\"\x14\n" +
 	"\x12JoinServerResponseB\xf2\x01\n" +
 	"\x16com.communityserver.v1B\x14CommunityserverProtoP\x01ZYgithub.com/varso/protchat-server/internal/models/gen/communityserver/v1;communityserverv1\xa2\x02\x03CXX\xaa\x02\x12Communityserver.V1\xca\x02\x12Communityserver\\V1\xe2\x02\x1eCommunityserver\\V1\\GPBMetadata\xea\x02\x13Communityserver::V1b\x06proto3"
 

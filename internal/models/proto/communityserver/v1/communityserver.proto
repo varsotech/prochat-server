@@ -15,6 +15,7 @@ message GetUserCommunitiesResponse {
 }
 
 message JoinServerRequest {
+  bool join_default_community = 1;
 }
 
 message JoinServerResponse {

@@ -216,6 +216,11 @@ export declare type JoinCommunityServerRequest = Message$1<"homeserver.v1.JoinCo
    * @generated from field: string host = 1;
    */
   host: string;
+
+  /**
+   * @generated from field: bool join_default_community = 2;
+   */
+  joinDefaultCommunity: boolean;
 };
 
 /**

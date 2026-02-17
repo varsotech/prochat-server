@@ -9,6 +9,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Community struct {
+	ID        uuid.UUID
+	Name      string
+	IsDefault bool
+	CreatedAt pgtype.Timestamptz
+}
+
+type CommunityMember struct {
+	ID          uuid.UUID
+	MemberID    uuid.UUID
+	CommunityID uuid.UUID
+	CreatedAt   pgtype.Timestamptz
+}
+
 type Member struct {
 	ID          uuid.UUID
 	UserAddress string

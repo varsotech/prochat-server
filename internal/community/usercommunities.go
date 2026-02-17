@@ -37,19 +37,24 @@ func (o *Routes) getUserCommunitiesHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: Retrieve real member communities
-	_ = member
-
-	response := communityserverv1.GetUserCommunitiesResponse{
-		Communities: []*communityserverv1.GetUserCommunitiesResponse_Community{
-			{
-				Id:   "testid",
-				Name: "Test Community",
-			},
-		},
+	communities, err := o.communityDb.GetMemberCommunities(r.Context(), member.ID)
+	if err != nil {
+		slog.Error("could not get member communities", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
-	o.writeProtoJson(w, &response)
+	var communitiesProto []*communityserverv1.GetUserCommunitiesResponse_Community
+	for _, community := range communities {
+		communitiesProto = append(communitiesProto, &communityserverv1.GetUserCommunitiesResponse_Community{
+			Id:   community.ID.String(),
+			Name: community.Name,
+		})
+	}
+
+	o.writeProtoJson(w, &communityserverv1.GetUserCommunitiesResponse{
+		Communities: communitiesProto,
+	})
 }
 
 func (o *Routes) writeProtoJson(w http.ResponseWriter, m proto.Message) {

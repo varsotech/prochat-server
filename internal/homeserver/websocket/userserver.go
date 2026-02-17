@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -185,7 +186,7 @@ func (h *Handlers) JoinCommunityServer(ctx context.Context, auth *oauth.Authoriz
 		}
 	}
 
-	_, err = h.joinCommunityServer(ctx, identityJwt, req.Host)
+	_, err = h.joinCommunityServer(ctx, identityJwt, req.Host, req.JoinDefaultCommunity)
 	if err != nil {
 		return &homeserverv1.Message{
 			Error: &homeserverv1.Message_Error{
@@ -208,7 +209,7 @@ func (h *Handlers) JoinCommunityServer(ctx context.Context, auth *oauth.Authoriz
 	}
 }
 
-func (h *Handlers) joinCommunityServer(ctx context.Context, identityJWT string, server string) (*communityserverv1.JoinServerResponse, error) {
+func (h *Handlers) joinCommunityServer(ctx context.Context, identityJWT string, server string, joinDefaultCommunity bool) (*communityserverv1.JoinServerResponse, error) {
 	if !strings.HasPrefix(server, "http://") && !strings.HasPrefix(server, "https://") {
 		server = "https://" + server
 	}
@@ -218,7 +219,16 @@ func (h *Handlers) joinCommunityServer(ctx context.Context, identityJWT string, 
 		return nil, fmt.Errorf("invalid server url: %s", server)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", u.JoinPath("/api/v1/community/server/join").String(), nil)
+	reqProto := communityserverv1.JoinServerRequest{
+		JoinDefaultCommunity: joinDefaultCommunity,
+	}
+
+	reqBytes, err := protojson.Marshal(&reqProto)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", u.JoinPath("/api/v1/community/server/join").String(), bytes.NewReader(reqBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

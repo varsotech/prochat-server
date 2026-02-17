@@ -63,6 +63,10 @@ export declare const GetUserCommunitiesResponse_CommunitySchema: GenMessage<GetU
  * @generated from message communityserver.v1.JoinServerRequest
  */
 export declare type JoinServerRequest = Message<"communityserver.v1.JoinServerRequest"> & {
+  /**
+   * @generated from field: bool join_default_community = 1;
+   */
+  joinDefaultCommunity: boolean;
 };
 
 /**

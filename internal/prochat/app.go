@@ -82,10 +82,19 @@ func Run() error {
 		ImageProxySecretSalt: os.Getenv("IMAGE_PROXY_SECRET_SALT"),
 	}
 
+	homeserverHost := os.Getenv("HOMESERVER_HOST")
+
 	// HTTP routes
-	homeserverRoutes := homeserver.NewRoutes(redisClient, homeserverDbClient, htmlTemplate, imageProxyConfig, os.Getenv("HOMESERVER_HOST"), os.Getenv("HOMESERVER_IDENTITY_PRIVATE_KEY"), os.Getenv("HOMESERVER_IDENTITY_PUBLIC_KEY"))
+	homeserverRoutes := homeserver.NewRoutes(redisClient, homeserverDbClient, htmlTemplate, imageProxyConfig, homeserverHost, os.Getenv("HOMESERVER_IDENTITY_PRIVATE_KEY"), os.Getenv("HOMESERVER_IDENTITY_PUBLIC_KEY"))
 	communityRoutes := community.NewRoutes(communityDbClient)
 	imageProxyRoutes := imageproxy.NewRoutes(externalFileStore, imageProxyConfig)
+
+	// Initializations
+	err = community.Initialize(ctx, communityDbClient, homeserverHost)
+	if err != nil {
+		slog.Error("failed initializing communityserver", "error", err)
+		return err
+	}
 
 	// Each routine must gracefully exit on context cancellation
 	errGroup, ctx := errgroup.WithContext(ctx)

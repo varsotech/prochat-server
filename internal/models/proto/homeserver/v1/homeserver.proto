@@ -51,6 +51,7 @@ message GetIdentityTokenResponse {
 
 message JoinCommunityServerRequest {
   string host = 1;
+  bool join_default_community = 2;
 }
 
 message JoinCommunityServerResponse {

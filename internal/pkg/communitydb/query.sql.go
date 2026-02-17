@@ -11,6 +11,22 @@ import (
 	"github.com/google/uuid"
 )
 
+const getDefaultCommunity = `-- name: GetDefaultCommunity :one
+SELECT id, name, is_default, created_at FROM communities WHERE is_default = true
+`
+
+func (q *Queries) GetDefaultCommunity(ctx context.Context) (Community, error) {
+	row := q.db.QueryRow(ctx, getDefaultCommunity)
+	var i Community
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getMemberByUserAddress = `-- name: GetMemberByUserAddress :one
 SELECT id, user_address, created_at FROM members WHERE user_address = $1
 `
@@ -19,6 +35,109 @@ func (q *Queries) GetMemberByUserAddress(ctx context.Context, userAddress string
 	row := q.db.QueryRow(ctx, getMemberByUserAddress, userAddress)
 	var i Member
 	err := row.Scan(&i.ID, &i.UserAddress, &i.CreatedAt)
+	return i, err
+}
+
+const getMemberCommunities = `-- name: GetMemberCommunities :many
+SELECT c.id, c.name, c.is_default, c.created_at FROM community_members INNER JOIN communities c ON c.id = community_members.community_id WHERE community_members.member_id = $1
+`
+
+func (q *Queries) GetMemberCommunities(ctx context.Context, memberID uuid.UUID) ([]Community, error) {
+	rows, err := q.db.Query(ctx, getMemberCommunities, memberID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Community
+	for rows.Next() {
+		var i Community
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.IsDefault,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertCommunity = `-- name: InsertCommunity :one
+INSERT INTO communities (id, name)
+VALUES ($1, $2)
+    RETURNING id, name, is_default, created_at
+`
+
+type InsertCommunityParams struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) InsertCommunity(ctx context.Context, arg InsertCommunityParams) (Community, error) {
+	row := q.db.QueryRow(ctx, insertCommunity, arg.ID, arg.Name)
+	var i Community
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const upsertCommunityMember = `-- name: UpsertCommunityMember :one
+INSERT INTO community_members (id, member_id, community_id)
+VALUES ($1, $2, $3)
+    ON CONFLICT (member_id, community_id) DO NOTHING
+    RETURNING id, member_id, community_id, created_at
+`
+
+type UpsertCommunityMemberParams struct {
+	ID          uuid.UUID
+	MemberID    uuid.UUID
+	CommunityID uuid.UUID
+}
+
+func (q *Queries) UpsertCommunityMember(ctx context.Context, arg UpsertCommunityMemberParams) (CommunityMember, error) {
+	row := q.db.QueryRow(ctx, upsertCommunityMember, arg.ID, arg.MemberID, arg.CommunityID)
+	var i CommunityMember
+	err := row.Scan(
+		&i.ID,
+		&i.MemberID,
+		&i.CommunityID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const upsertDefaultCommunity = `-- name: UpsertDefaultCommunity :one
+INSERT INTO communities (id, name, is_default)
+VALUES ($1, $2, true)
+    ON CONFLICT (is_default)
+    WHERE is_default = TRUE
+    DO NOTHING
+    RETURNING id, name, is_default, created_at
+`
+
+type UpsertDefaultCommunityParams struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) UpsertDefaultCommunity(ctx context.Context, arg UpsertDefaultCommunityParams) (Community, error) {
+	row := q.db.QueryRow(ctx, upsertDefaultCommunity, arg.ID, arg.Name)
+	var i Community
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
