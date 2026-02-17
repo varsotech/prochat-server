@@ -2,12 +2,13 @@ package homeserver
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/varsotech/prochat-server/internal/oauth"
+	"github.com/varsotech/prochat-server/internal/homeserver/oauth"
+	homeserverv1 "github.com/varsotech/prochat-server/internal/models/gen/homeserver/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 // Upgrader is used to upgrade HTTP connections to WebSocket connections.
@@ -35,10 +36,7 @@ func (o *Routes) ws(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("authorizationHeader", "authorizationHeader", authorizationHeader)
-
-	// TODO: Should r.Context() be used here?
-	_, err = o.authorizer.Authorize(r.Context(), string(authorizationHeader))
+	auth, err := o.authorizer.Authorize(r.Context(), string(authorizationHeader))
 	if errors.Is(err, oauth.UnauthorizedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -58,10 +56,26 @@ func (o *Routes) ws(w http.ResponseWriter, r *http.Request) {
 			slog.Error("failed to read websocket message", "error", err)
 			break
 		}
-		fmt.Printf("Received: %s\n", message)
-		// Echo the message back to the client
-		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-			slog.Error("failed to write websocket essage", "error", err)
+
+		var homeserverMessage homeserverv1.Message
+		err = proto.Unmarshal(message, &homeserverMessage)
+		if err != nil {
+			slog.Info("failed to unmarshal homeserver message", "error", err)
+			continue
+		}
+
+		response := o.handlers.Handle(r.Context(), auth, &homeserverMessage)
+
+		responseData, err := proto.Marshal(response)
+		if err != nil {
+			slog.Info("failed to marshal response", "error", err)
+			continue
+		}
+
+		slog.Info("websocket sending response message", "message", string(responseData))
+
+		if err := conn.WriteMessage(websocket.BinaryMessage, responseData); err != nil {
+			slog.Error("failed to write websocket message", "error", err)
 			break
 		}
 	}

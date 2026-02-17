@@ -1,0 +1,179 @@
+package http
+
+import (
+	"errors"
+	"io"
+	"log/slog"
+	"net/http"
+
+	service2 "github.com/varsotech/prochat-server/internal/homeserver/auth/service"
+	"github.com/varsotech/prochat-server/internal/homeserver/auth/sessionstore"
+	prochatv1 "github.com/varsotech/prochat-server/internal/models/gen/prochat/v1"
+	"google.golang.org/protobuf/encoding/protojson"
+)
+
+const (
+	accessTokenCookieName  = "prochat_accesstoken"
+	refreshTokenCookieName = "prochat_refreshtoken"
+	accessTokenCookiePath  = "/"
+	refreshTokenCookiePath = "/api/v1/auth/refresh"
+)
+
+func (s *Routes) refreshHandler(w http.ResponseWriter, r *http.Request) {
+	refreshTokenCookie, err := r.Cookie(refreshTokenCookieName)
+	if err != nil {
+		slog.Error("error getting refreshToken cookie", "error", err)
+		http.Error(w, "error getting cookie", http.StatusUnauthorized)
+		return
+	}
+
+	refreshResult, err := s.service.Refresh(r.Context(), refreshTokenCookie.Value)
+	if err != nil {
+		slog.Error("refresh failed", "error", err, "request_uri", r.RequestURI)
+
+		var serviceErr service2.Error
+		if errors.As(err, &serviceErr) {
+			http.Error(w, serviceErr.ExternalMessage, serviceErr.HTTPCode)
+			return
+		}
+
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	s.setTokenPairCookies(w, refreshResult.AccessToken, refreshResult.RefreshToken)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Routes) loginHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var req prochatv1.LoginRequest
+	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
+	if err != nil {
+		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	loginResult, err := s.service.Login(r.Context(), service2.LoginParams{
+		Login:    req.Login,
+		Password: req.Password,
+	})
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	s.setTokenPairCookies(w, loginResult.AccessToken, loginResult.RefreshToken)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Routes) registerHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	var req prochatv1.RegisterRequest
+	err = protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(body, &req)
+	if err != nil {
+		slog.Info("unable to read request body", "error", err, "request_uri", r.RequestURI)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	var userName *service2.Username
+	if req.Username != "" {
+		validatedUserName, err := service2.NewUsername(req.Username)
+		if err != nil {
+			writeServiceError(w, err)
+			return
+		}
+		userName = &validatedUserName
+	}
+
+	var email *service2.Email
+	if req.Email != "" {
+		validatedEmail, err := service2.NewEmail(req.Email)
+		if err != nil {
+			writeServiceError(w, err)
+			return
+		}
+		email = &validatedEmail
+	}
+
+	var password *service2.Password
+	if req.Password != "" {
+		validatedPassword, err := service2.NewPassword(req.Password)
+		if err != nil {
+			writeServiceError(w, err)
+			return
+		}
+		password = &validatedPassword
+	}
+
+	displayName, err := service2.NewDisplayName(req.DisplayName)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	registerResult, err := s.service.Register(r.Context(), service2.RegisterParams{
+		DisplayName: displayName,
+		Username:    userName,
+		Email:       email,
+		Password:    password,
+	})
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	s.setTokenPairCookies(w, registerResult.AccessToken, registerResult.RefreshToken)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Routes) logoutHandler(w http.ResponseWriter, r *http.Request) {
+	accessTokenData, err := s.authenticator.Authenticate(r)
+	if errors.Is(err, UnauthenticatedError) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		slog.Error("failed to authenticate user", "error", err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	err = s.service.Logout(r.Context(), service2.LogoutParams{
+		AccessToken: accessTokenData.AccessToken,
+	})
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	accessTokenCookie := createCookie(accessTokenCookieName, "", accessTokenCookiePath, -1)
+	refreshTokenCookie := createCookie(refreshTokenCookieName, "", refreshTokenCookiePath, -1)
+
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Routes) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
+	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, accessTokenCookiePath, sessionstore.AccessTokenMaxAge)
+	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, refreshTokenCookiePath, sessionstore.RefreshTokenMaxAge)
+
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+}

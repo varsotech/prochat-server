@@ -1,0 +1,58 @@
+syntax = "proto3";
+package homeserver.v1;
+
+message Message {
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_ADD_USER_SERVER = 1;
+    TYPE_GET_USER_COMMUNITIES = 2;
+    TYPE_GET_IDENTITY_TOKEN = 3;
+    TYPE_JOIN_COMMUNITY_SERVER = 4;
+  }
+
+  message Error {
+    string message = 1;
+  }
+
+  Type type = 1;
+  bytes payload = 2;
+  Error error = 3;
+}
+
+message AddUserServerRequest {
+  string host = 1;
+}
+
+message AddUserServerResponse {
+}
+
+message GetUserCommunitiesRequest {
+}
+
+message GetUserCommunitiesResponse {
+  message Community {
+    string id = 1;
+    string name = 2;
+  }
+
+  repeated Community communities = 1;
+}
+
+message WellKnown {
+  string public_key = 1;
+}
+
+message GetIdentityTokenRequest {
+}
+
+message GetIdentityTokenResponse {
+  string token = 1;
+}
+
+message JoinCommunityServerRequest {
+  string host = 1;
+  bool join_default_community = 2;
+}
+
+message JoinCommunityServerResponse {
+}
