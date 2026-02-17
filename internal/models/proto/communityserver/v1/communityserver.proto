@@ -1,0 +1,21 @@
+syntax = "proto3";
+package communityserver.v1;
+
+
+message GetUserCommunitiesRequest {
+}
+
+message GetUserCommunitiesResponse {
+  message Community {
+    string id = 1;
+    string name = 2;
+  }
+
+  repeated Community communities = 1;
+}
+
+message JoinServerRequest {
+}
+
+message JoinServerResponse {
+}

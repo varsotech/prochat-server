@@ -24,9 +24,11 @@ const (
 type Message_Type int32
 
 const (
-	Message_TYPE_UNSPECIFIED      Message_Type = 0
-	Message_TYPE_ADD_USER_SERVER  Message_Type = 1
-	Message_TYPE_GET_USER_SERVERS Message_Type = 2
+	Message_TYPE_UNSPECIFIED           Message_Type = 0
+	Message_TYPE_ADD_USER_SERVER       Message_Type = 1
+	Message_TYPE_GET_USER_COMMUNITIES  Message_Type = 2
+	Message_TYPE_GET_IDENTITY_TOKEN    Message_Type = 3
+	Message_TYPE_JOIN_COMMUNITY_SERVER Message_Type = 4
 )
 
 // Enum value maps for Message_Type.
@@ -34,12 +36,16 @@ var (
 	Message_Type_name = map[int32]string{
 		0: "TYPE_UNSPECIFIED",
 		1: "TYPE_ADD_USER_SERVER",
-		2: "TYPE_GET_USER_SERVERS",
+		2: "TYPE_GET_USER_COMMUNITIES",
+		3: "TYPE_GET_IDENTITY_TOKEN",
+		4: "TYPE_JOIN_COMMUNITY_SERVER",
 	}
 	Message_Type_value = map[string]int32{
-		"TYPE_UNSPECIFIED":      0,
-		"TYPE_ADD_USER_SERVER":  1,
-		"TYPE_GET_USER_SERVERS": 2,
+		"TYPE_UNSPECIFIED":           0,
+		"TYPE_ADD_USER_SERVER":       1,
+		"TYPE_GET_USER_COMMUNITIES":  2,
+		"TYPE_GET_IDENTITY_TOKEN":    3,
+		"TYPE_JOIN_COMMUNITY_SERVER": 4,
 	}
 )
 
@@ -210,26 +216,26 @@ func (*AddUserServerResponse) Descriptor() ([]byte, []int) {
 	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{2}
 }
 
-type GetUserServersRequest struct {
+type GetUserCommunitiesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetUserServersRequest) Reset() {
-	*x = GetUserServersRequest{}
+func (x *GetUserCommunitiesRequest) Reset() {
+	*x = GetUserCommunitiesRequest{}
 	mi := &file_homeserver_v1_homeserver_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetUserServersRequest) String() string {
+func (x *GetUserCommunitiesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetUserServersRequest) ProtoMessage() {}
+func (*GetUserCommunitiesRequest) ProtoMessage() {}
 
-func (x *GetUserServersRequest) ProtoReflect() protoreflect.Message {
+func (x *GetUserCommunitiesRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_homeserver_v1_homeserver_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -241,32 +247,32 @@ func (x *GetUserServersRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUserServersRequest.ProtoReflect.Descriptor instead.
-func (*GetUserServersRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetUserCommunitiesRequest.ProtoReflect.Descriptor instead.
+func (*GetUserCommunitiesRequest) Descriptor() ([]byte, []int) {
 	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{3}
 }
 
-type GetUserServersResponse struct {
-	state         protoimpl.MessageState           `protogen:"open.v1"`
-	Servers       []*GetUserServersResponse_Server `protobuf:"bytes,1,rep,name=servers,proto3" json:"servers,omitempty"`
+type GetUserCommunitiesResponse struct {
+	state         protoimpl.MessageState                  `protogen:"open.v1"`
+	Communities   []*GetUserCommunitiesResponse_Community `protobuf:"bytes,1,rep,name=communities,proto3" json:"communities,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetUserServersResponse) Reset() {
-	*x = GetUserServersResponse{}
+func (x *GetUserCommunitiesResponse) Reset() {
+	*x = GetUserCommunitiesResponse{}
 	mi := &file_homeserver_v1_homeserver_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetUserServersResponse) String() string {
+func (x *GetUserCommunitiesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetUserServersResponse) ProtoMessage() {}
+func (*GetUserCommunitiesResponse) ProtoMessage() {}
 
-func (x *GetUserServersResponse) ProtoReflect() protoreflect.Message {
+func (x *GetUserCommunitiesResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_homeserver_v1_homeserver_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -278,16 +284,220 @@ func (x *GetUserServersResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUserServersResponse.ProtoReflect.Descriptor instead.
-func (*GetUserServersResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetUserCommunitiesResponse.ProtoReflect.Descriptor instead.
+func (*GetUserCommunitiesResponse) Descriptor() ([]byte, []int) {
 	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetUserServersResponse) GetServers() []*GetUserServersResponse_Server {
+func (x *GetUserCommunitiesResponse) GetCommunities() []*GetUserCommunitiesResponse_Community {
 	if x != nil {
-		return x.Servers
+		return x.Communities
 	}
 	return nil
+}
+
+type WellKnown struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PublicKey     string                 `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WellKnown) Reset() {
+	*x = WellKnown{}
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WellKnown) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WellKnown) ProtoMessage() {}
+
+func (x *WellKnown) ProtoReflect() protoreflect.Message {
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WellKnown.ProtoReflect.Descriptor instead.
+func (*WellKnown) Descriptor() ([]byte, []int) {
+	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WellKnown) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+type GetIdentityTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetIdentityTokenRequest) Reset() {
+	*x = GetIdentityTokenRequest{}
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetIdentityTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetIdentityTokenRequest) ProtoMessage() {}
+
+func (x *GetIdentityTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetIdentityTokenRequest.ProtoReflect.Descriptor instead.
+func (*GetIdentityTokenRequest) Descriptor() ([]byte, []int) {
+	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{6}
+}
+
+type GetIdentityTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetIdentityTokenResponse) Reset() {
+	*x = GetIdentityTokenResponse{}
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetIdentityTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetIdentityTokenResponse) ProtoMessage() {}
+
+func (x *GetIdentityTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetIdentityTokenResponse.ProtoReflect.Descriptor instead.
+func (*GetIdentityTokenResponse) Descriptor() ([]byte, []int) {
+	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetIdentityTokenResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+type JoinCommunityServerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Host          string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JoinCommunityServerRequest) Reset() {
+	*x = JoinCommunityServerRequest{}
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinCommunityServerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinCommunityServerRequest) ProtoMessage() {}
+
+func (x *JoinCommunityServerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinCommunityServerRequest.ProtoReflect.Descriptor instead.
+func (*JoinCommunityServerRequest) Descriptor() ([]byte, []int) {
+	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *JoinCommunityServerRequest) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+type JoinCommunityServerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JoinCommunityServerResponse) Reset() {
+	*x = JoinCommunityServerResponse{}
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinCommunityServerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinCommunityServerResponse) ProtoMessage() {}
+
+func (x *JoinCommunityServerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinCommunityServerResponse.ProtoReflect.Descriptor instead.
+func (*JoinCommunityServerResponse) Descriptor() ([]byte, []int) {
+	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{9}
 }
 
 type Message_Error struct {
@@ -299,7 +509,7 @@ type Message_Error struct {
 
 func (x *Message_Error) Reset() {
 	*x = Message_Error{}
-	mi := &file_homeserver_v1_homeserver_proto_msgTypes[5]
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -311,7 +521,7 @@ func (x *Message_Error) String() string {
 func (*Message_Error) ProtoMessage() {}
 
 func (x *Message_Error) ProtoReflect() protoreflect.Message {
-	mi := &file_homeserver_v1_homeserver_proto_msgTypes[5]
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,28 +544,29 @@ func (x *Message_Error) GetMessage() string {
 	return ""
 }
 
-type GetUserServersResponse_Server struct {
+type GetUserCommunitiesResponse_Community struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Host          string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetUserServersResponse_Server) Reset() {
-	*x = GetUserServersResponse_Server{}
-	mi := &file_homeserver_v1_homeserver_proto_msgTypes[6]
+func (x *GetUserCommunitiesResponse_Community) Reset() {
+	*x = GetUserCommunitiesResponse_Community{}
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetUserServersResponse_Server) String() string {
+func (x *GetUserCommunitiesResponse_Community) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetUserServersResponse_Server) ProtoMessage() {}
+func (*GetUserCommunitiesResponse_Community) ProtoMessage() {}
 
-func (x *GetUserServersResponse_Server) ProtoReflect() protoreflect.Message {
-	mi := &file_homeserver_v1_homeserver_proto_msgTypes[6]
+func (x *GetUserCommunitiesResponse_Community) ProtoReflect() protoreflect.Message {
+	mi := &file_homeserver_v1_homeserver_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -366,14 +577,21 @@ func (x *GetUserServersResponse_Server) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUserServersResponse_Server.ProtoReflect.Descriptor instead.
-func (*GetUserServersResponse_Server) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetUserCommunitiesResponse_Community.ProtoReflect.Descriptor instead.
+func (*GetUserCommunitiesResponse_Community) Descriptor() ([]byte, []int) {
 	return file_homeserver_v1_homeserver_proto_rawDescGZIP(), []int{4, 0}
 }
 
-func (x *GetUserServersResponse_Server) GetHost() string {
+func (x *GetUserCommunitiesResponse_Community) GetId() string {
 	if x != nil {
-		return x.Host
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetUserCommunitiesResponse_Community) GetName() string {
+	if x != nil {
+		return x.Name
 	}
 	return ""
 }
@@ -382,25 +600,37 @@ var File_homeserver_v1_homeserver_proto protoreflect.FileDescriptor
 
 const file_homeserver_v1_homeserver_proto_rawDesc = "" +
 	"\n" +
-	"\x1ehomeserver/v1/homeserver.proto\x12\rhomeserver.v1\"\xfe\x01\n" +
+	"\x1ehomeserver/v1/homeserver.proto\x12\rhomeserver.v1\"\xc0\x02\n" +
 	"\aMessage\x12/\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x1b.homeserver.v1.Message.TypeR\x04type\x12\x18\n" +
 	"\apayload\x18\x02 \x01(\fR\apayload\x122\n" +
 	"\x05error\x18\x03 \x01(\v2\x1c.homeserver.v1.Message.ErrorR\x05error\x1a!\n" +
 	"\x05Error\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"Q\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"\x92\x01\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
-	"\x14TYPE_ADD_USER_SERVER\x10\x01\x12\x19\n" +
-	"\x15TYPE_GET_USER_SERVERS\x10\x02\"*\n" +
+	"\x14TYPE_ADD_USER_SERVER\x10\x01\x12\x1d\n" +
+	"\x19TYPE_GET_USER_COMMUNITIES\x10\x02\x12\x1b\n" +
+	"\x17TYPE_GET_IDENTITY_TOKEN\x10\x03\x12\x1e\n" +
+	"\x1aTYPE_JOIN_COMMUNITY_SERVER\x10\x04\"*\n" +
 	"\x14AddUserServerRequest\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\"\x17\n" +
-	"\x15AddUserServerResponse\"\x17\n" +
-	"\x15GetUserServersRequest\"~\n" +
-	"\x16GetUserServersResponse\x12F\n" +
-	"\aservers\x18\x01 \x03(\v2,.homeserver.v1.GetUserServersResponse.ServerR\aservers\x1a\x1c\n" +
-	"\x06Server\x12\x12\n" +
-	"\x04host\x18\x01 \x01(\tR\x04hostB\xca\x01\n" +
+	"\x15AddUserServerResponse\"\x1b\n" +
+	"\x19GetUserCommunitiesRequest\"\xa4\x01\n" +
+	"\x1aGetUserCommunitiesResponse\x12U\n" +
+	"\vcommunities\x18\x01 \x03(\v23.homeserver.v1.GetUserCommunitiesResponse.CommunityR\vcommunities\x1a/\n" +
+	"\tCommunity\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"*\n" +
+	"\tWellKnown\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x01 \x01(\tR\tpublicKey\"\x19\n" +
+	"\x17GetIdentityTokenRequest\"0\n" +
+	"\x18GetIdentityTokenResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"0\n" +
+	"\x1aJoinCommunityServerRequest\x12\x12\n" +
+	"\x04host\x18\x01 \x01(\tR\x04host\"\x1d\n" +
+	"\x1bJoinCommunityServerResponseB\xca\x01\n" +
 	"\x11com.homeserver.v1B\x0fHomeserverProtoP\x01ZOgithub.com/varso/protchat-server/internal/models/gen/homeserver/v1;homeserverv1\xa2\x02\x03HXX\xaa\x02\rHomeserver.V1\xca\x02\rHomeserver\\V1\xe2\x02\x19Homeserver\\V1\\GPBMetadata\xea\x02\x0eHomeserver::V1b\x06proto3"
 
 var (
@@ -416,26 +646,31 @@ func file_homeserver_v1_homeserver_proto_rawDescGZIP() []byte {
 }
 
 var file_homeserver_v1_homeserver_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_homeserver_v1_homeserver_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_homeserver_v1_homeserver_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_homeserver_v1_homeserver_proto_goTypes = []any{
-	(Message_Type)(0),                     // 0: homeserver.v1.Message.Type
-	(*Message)(nil),                       // 1: homeserver.v1.Message
-	(*AddUserServerRequest)(nil),          // 2: homeserver.v1.AddUserServerRequest
-	(*AddUserServerResponse)(nil),         // 3: homeserver.v1.AddUserServerResponse
-	(*GetUserServersRequest)(nil),         // 4: homeserver.v1.GetUserServersRequest
-	(*GetUserServersResponse)(nil),        // 5: homeserver.v1.GetUserServersResponse
-	(*Message_Error)(nil),                 // 6: homeserver.v1.Message.Error
-	(*GetUserServersResponse_Server)(nil), // 7: homeserver.v1.GetUserServersResponse.Server
+	(Message_Type)(0),                            // 0: homeserver.v1.Message.Type
+	(*Message)(nil),                              // 1: homeserver.v1.Message
+	(*AddUserServerRequest)(nil),                 // 2: homeserver.v1.AddUserServerRequest
+	(*AddUserServerResponse)(nil),                // 3: homeserver.v1.AddUserServerResponse
+	(*GetUserCommunitiesRequest)(nil),            // 4: homeserver.v1.GetUserCommunitiesRequest
+	(*GetUserCommunitiesResponse)(nil),           // 5: homeserver.v1.GetUserCommunitiesResponse
+	(*WellKnown)(nil),                            // 6: homeserver.v1.WellKnown
+	(*GetIdentityTokenRequest)(nil),              // 7: homeserver.v1.GetIdentityTokenRequest
+	(*GetIdentityTokenResponse)(nil),             // 8: homeserver.v1.GetIdentityTokenResponse
+	(*JoinCommunityServerRequest)(nil),           // 9: homeserver.v1.JoinCommunityServerRequest
+	(*JoinCommunityServerResponse)(nil),          // 10: homeserver.v1.JoinCommunityServerResponse
+	(*Message_Error)(nil),                        // 11: homeserver.v1.Message.Error
+	(*GetUserCommunitiesResponse_Community)(nil), // 12: homeserver.v1.GetUserCommunitiesResponse.Community
 }
 var file_homeserver_v1_homeserver_proto_depIdxs = []int32{
-	0, // 0: homeserver.v1.Message.type:type_name -> homeserver.v1.Message.Type
-	6, // 1: homeserver.v1.Message.error:type_name -> homeserver.v1.Message.Error
-	7, // 2: homeserver.v1.GetUserServersResponse.servers:type_name -> homeserver.v1.GetUserServersResponse.Server
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: homeserver.v1.Message.type:type_name -> homeserver.v1.Message.Type
+	11, // 1: homeserver.v1.Message.error:type_name -> homeserver.v1.Message.Error
+	12, // 2: homeserver.v1.GetUserCommunitiesResponse.communities:type_name -> homeserver.v1.GetUserCommunitiesResponse.Community
+	3,  // [3:3] is the sub-list for method output_type
+	3,  // [3:3] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_homeserver_v1_homeserver_proto_init() }
@@ -449,7 +684,7 @@ func file_homeserver_v1_homeserver_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_homeserver_v1_homeserver_proto_rawDesc), len(file_homeserver_v1_homeserver_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

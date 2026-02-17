@@ -19,7 +19,6 @@ import (
 func (o *Routes) authorizeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := o.authenticator.Authenticate(r)
 	if errors.Is(err, authhttp.UnauthenticatedError) {
-		// TODO: Should login redirection happen client side like now? Or should we do it in the login handler and validate that its same origin?
 		http.Redirect(w, r, fmt.Sprintf("/login?redirectTo=%s", url.QueryEscape(r.URL.String())), http.StatusFound)
 		return
 	}
@@ -162,14 +161,18 @@ func (o *Routes) parseForm(r *http.Request) (*form, error) {
 	}, nil
 }
 
+func (o *Routes) tokenOptionsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, ngrok-skip-browser-warning")
+
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
 func (o *Routes) tokenHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Debug("token handler")
-
-	// TODO: Move this
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 
 	q := r.URL.Query()
 

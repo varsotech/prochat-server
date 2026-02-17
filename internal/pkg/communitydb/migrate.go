@@ -1,4 +1,4 @@
-package homeserverdb
+package communitydb
 
 import (
 	"context"
@@ -39,7 +39,7 @@ func applyMigrations(connectionString string) error {
 func createDatabaseIfNotExists(ctx context.Context, connectionStringWithoutDatabase, databaseName string) error {
 	db, err := pgxpool.New(ctx, connectionStringWithoutDatabase)
 	if err != nil {
-		return fmt.Errorf("failed connecting to homeserverdb: %w", err)
+		return fmt.Errorf("failed connecting to communitydb: %w", err)
 	}
 	defer db.Close()
 

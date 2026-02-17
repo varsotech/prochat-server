@@ -5,7 +5,9 @@ message Message {
   enum Type {
     TYPE_UNSPECIFIED = 0;
     TYPE_ADD_USER_SERVER = 1;
-    TYPE_GET_USER_SERVERS = 2;
+    TYPE_GET_USER_COMMUNITIES = 2;
+    TYPE_GET_IDENTITY_TOKEN = 3;
+    TYPE_JOIN_COMMUNITY_SERVER = 4;
   }
 
   message Error {
@@ -24,13 +26,32 @@ message AddUserServerRequest {
 message AddUserServerResponse {
 }
 
-message GetUserServersRequest {
+message GetUserCommunitiesRequest {
 }
 
-message GetUserServersResponse {
-  message Server {
-    string host = 1;
+message GetUserCommunitiesResponse {
+  message Community {
+    string id = 1;
+    string name = 2;
   }
 
-  repeated Server servers = 1;
+  repeated Community communities = 1;
+}
+
+message WellKnown {
+  string public_key = 1;
+}
+
+message GetIdentityTokenRequest {
+}
+
+message GetIdentityTokenResponse {
+  string token = 1;
+}
+
+message JoinCommunityServerRequest {
+  string host = 1;
+}
+
+message JoinCommunityServerResponse {
 }

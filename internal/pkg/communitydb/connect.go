@@ -1,4 +1,4 @@
-package homeserverdb
+package communitydb
 
 import (
 	"context"

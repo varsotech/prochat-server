@@ -36,8 +36,6 @@ func (o *Routes) ws(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("authorizationHeader", "authorizationHeader", authorizationHeader)
-
 	auth, err := o.authorizer.Authorize(r.Context(), string(authorizationHeader))
 	if errors.Is(err, oauth.UnauthorizedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)

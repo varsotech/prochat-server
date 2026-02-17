@@ -8,7 +8,7 @@ import { enumDesc, fileDesc, messageDesc, tsEnum } from "@bufbuild/protobuf/code
  * Describes the file homeserver/v1/homeserver.proto.
  */
 export const file_homeserver_v1_homeserver = /*@__PURE__*/
-  fileDesc("Ch5ob21lc2VydmVyL3YxL2hvbWVzZXJ2ZXIucHJvdG8SDWhvbWVzZXJ2ZXIudjEi3wEKB01lc3NhZ2USKQoEdHlwZRgBIAEoDjIbLmhvbWVzZXJ2ZXIudjEuTWVzc2FnZS5UeXBlEg8KB3BheWxvYWQYAiABKAwSKwoFZXJyb3IYAyABKAsyHC5ob21lc2VydmVyLnYxLk1lc3NhZ2UuRXJyb3IaGAoFRXJyb3ISDwoHbWVzc2FnZRgBIAEoCSJRCgRUeXBlEhQKEFRZUEVfVU5TUEVDSUZJRUQQABIYChRUWVBFX0FERF9VU0VSX1NFUlZFUhABEhkKFVRZUEVfR0VUX1VTRVJfU0VSVkVSUxACIiQKFEFkZFVzZXJTZXJ2ZXJSZXF1ZXN0EgwKBGhvc3QYASABKAkiFwoVQWRkVXNlclNlcnZlclJlc3BvbnNlIhcKFUdldFVzZXJTZXJ2ZXJzUmVxdWVzdCJvChZHZXRVc2VyU2VydmVyc1Jlc3BvbnNlEj0KB3NlcnZlcnMYASADKAsyLC5ob21lc2VydmVyLnYxLkdldFVzZXJTZXJ2ZXJzUmVzcG9uc2UuU2VydmVyGhYKBlNlcnZlchIMCgRob3N0GAEgASgJQsoBChFjb20uaG9tZXNlcnZlci52MUIPSG9tZXNlcnZlclByb3RvUAFaT2dpdGh1Yi5jb20vdmFyc28vcHJvdGNoYXQtc2VydmVyL2ludGVybmFsL21vZGVscy9nZW4vaG9tZXNlcnZlci92MTtob21lc2VydmVydjGiAgNIWFiqAg1Ib21lc2VydmVyLlYxygINSG9tZXNlcnZlclxWMeICGUhvbWVzZXJ2ZXJcVjFcR1BCTWV0YWRhdGHqAg5Ib21lc2VydmVyOjpWMWIGcHJvdG8z");
+  fileDesc("Ch5ob21lc2VydmVyL3YxL2hvbWVzZXJ2ZXIucHJvdG8SDWhvbWVzZXJ2ZXIudjEioQIKB01lc3NhZ2USKQoEdHlwZRgBIAEoDjIbLmhvbWVzZXJ2ZXIudjEuTWVzc2FnZS5UeXBlEg8KB3BheWxvYWQYAiABKAwSKwoFZXJyb3IYAyABKAsyHC5ob21lc2VydmVyLnYxLk1lc3NhZ2UuRXJyb3IaGAoFRXJyb3ISDwoHbWVzc2FnZRgBIAEoCSKSAQoEVHlwZRIUChBUWVBFX1VOU1BFQ0lGSUVEEAASGAoUVFlQRV9BRERfVVNFUl9TRVJWRVIQARIdChlUWVBFX0dFVF9VU0VSX0NPTU1VTklUSUVTEAISGwoXVFlQRV9HRVRfSURFTlRJVFlfVE9LRU4QAxIeChpUWVBFX0pPSU5fQ09NTVVOSVRZX1NFUlZFUhAEIiQKFEFkZFVzZXJTZXJ2ZXJSZXF1ZXN0EgwKBGhvc3QYASABKAkiFwoVQWRkVXNlclNlcnZlclJlc3BvbnNlIhsKGUdldFVzZXJDb21tdW5pdGllc1JlcXVlc3QijQEKGkdldFVzZXJDb21tdW5pdGllc1Jlc3BvbnNlEkgKC2NvbW11bml0aWVzGAEgAygLMjMuaG9tZXNlcnZlci52MS5HZXRVc2VyQ29tbXVuaXRpZXNSZXNwb25zZS5Db21tdW5pdHkaJQoJQ29tbXVuaXR5EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkiHwoJV2VsbEtub3duEhIKCnB1YmxpY19rZXkYASABKAkiGQoXR2V0SWRlbnRpdHlUb2tlblJlcXVlc3QiKQoYR2V0SWRlbnRpdHlUb2tlblJlc3BvbnNlEg0KBXRva2VuGAEgASgJIioKGkpvaW5Db21tdW5pdHlTZXJ2ZXJSZXF1ZXN0EgwKBGhvc3QYASABKAkiHQobSm9pbkNvbW11bml0eVNlcnZlclJlc3BvbnNlQsoBChFjb20uaG9tZXNlcnZlci52MUIPSG9tZXNlcnZlclByb3RvUAFaT2dpdGh1Yi5jb20vdmFyc28vcHJvdGNoYXQtc2VydmVyL2ludGVybmFsL21vZGVscy9nZW4vaG9tZXNlcnZlci92MTtob21lc2VydmVydjGiAgNIWFiqAg1Ib21lc2VydmVyLlYxygINSG9tZXNlcnZlclxWMeICGUhvbWVzZXJ2ZXJcVjFcR1BCTWV0YWRhdGHqAg5Ib21lc2VydmVyOjpWMWIGcHJvdG8z");
 
 /**
  * Describes the message homeserver.v1.Message.
@@ -51,23 +51,58 @@ export const AddUserServerResponseSchema = /*@__PURE__*/
   messageDesc(file_homeserver_v1_homeserver, 2);
 
 /**
- * Describes the message homeserver.v1.GetUserServersRequest.
- * Use `create(GetUserServersRequestSchema)` to create a new message.
+ * Describes the message homeserver.v1.GetUserCommunitiesRequest.
+ * Use `create(GetUserCommunitiesRequestSchema)` to create a new message.
  */
-export const GetUserServersRequestSchema = /*@__PURE__*/
+export const GetUserCommunitiesRequestSchema = /*@__PURE__*/
   messageDesc(file_homeserver_v1_homeserver, 3);
 
 /**
- * Describes the message homeserver.v1.GetUserServersResponse.
- * Use `create(GetUserServersResponseSchema)` to create a new message.
+ * Describes the message homeserver.v1.GetUserCommunitiesResponse.
+ * Use `create(GetUserCommunitiesResponseSchema)` to create a new message.
  */
-export const GetUserServersResponseSchema = /*@__PURE__*/
+export const GetUserCommunitiesResponseSchema = /*@__PURE__*/
   messageDesc(file_homeserver_v1_homeserver, 4);
 
 /**
- * Describes the message homeserver.v1.GetUserServersResponse.Server.
- * Use `create(GetUserServersResponse_ServerSchema)` to create a new message.
+ * Describes the message homeserver.v1.GetUserCommunitiesResponse.Community.
+ * Use `create(GetUserCommunitiesResponse_CommunitySchema)` to create a new message.
  */
-export const GetUserServersResponse_ServerSchema = /*@__PURE__*/
+export const GetUserCommunitiesResponse_CommunitySchema = /*@__PURE__*/
   messageDesc(file_homeserver_v1_homeserver, 4, 0);
+
+/**
+ * Describes the message homeserver.v1.WellKnown.
+ * Use `create(WellKnownSchema)` to create a new message.
+ */
+export const WellKnownSchema = /*@__PURE__*/
+  messageDesc(file_homeserver_v1_homeserver, 5);
+
+/**
+ * Describes the message homeserver.v1.GetIdentityTokenRequest.
+ * Use `create(GetIdentityTokenRequestSchema)` to create a new message.
+ */
+export const GetIdentityTokenRequestSchema = /*@__PURE__*/
+  messageDesc(file_homeserver_v1_homeserver, 6);
+
+/**
+ * Describes the message homeserver.v1.GetIdentityTokenResponse.
+ * Use `create(GetIdentityTokenResponseSchema)` to create a new message.
+ */
+export const GetIdentityTokenResponseSchema = /*@__PURE__*/
+  messageDesc(file_homeserver_v1_homeserver, 7);
+
+/**
+ * Describes the message homeserver.v1.JoinCommunityServerRequest.
+ * Use `create(JoinCommunityServerRequestSchema)` to create a new message.
+ */
+export const JoinCommunityServerRequestSchema = /*@__PURE__*/
+  messageDesc(file_homeserver_v1_homeserver, 8);
+
+/**
+ * Describes the message homeserver.v1.JoinCommunityServerResponse.
+ * Use `create(JoinCommunityServerResponseSchema)` to create a new message.
+ */
+export const JoinCommunityServerResponseSchema = /*@__PURE__*/
+  messageDesc(file_homeserver_v1_homeserver, 9);
 

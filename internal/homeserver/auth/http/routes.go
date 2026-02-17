@@ -12,19 +12,19 @@ type Authenticator interface {
 	Authenticate(r *http.Request) (AuthenticateResult, error)
 }
 
-type Service struct {
+type Routes struct {
 	service       *service.Service
 	authenticator Authenticator
 }
 
-func New(pgClient *pgxpool.Pool, redisClient *redis.Client, host string) *Service {
-	return &Service{
+func New(pgClient *pgxpool.Pool, redisClient *redis.Client, host string) *Routes {
+	return &Routes{
 		service:       service.New(pgClient, redisClient, host),
 		authenticator: NewAuthenticator(redisClient),
 	}
 }
 
-func (s *Service) RegisterRoutes(mux *http.ServeMux) {
+func (s *Routes) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/login", s.loginHandler)
 	mux.HandleFunc("POST /api/v1/auth/register", s.registerHandler)
 	mux.HandleFunc("POST /api/v1/auth/refresh", s.refreshHandler)

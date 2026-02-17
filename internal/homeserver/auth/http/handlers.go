@@ -19,7 +19,7 @@ const (
 	refreshTokenCookiePath = "/api/v1/auth/refresh"
 )
 
-func (s *Service) refreshHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Routes) refreshHandler(w http.ResponseWriter, r *http.Request) {
 	refreshTokenCookie, err := r.Cookie(refreshTokenCookieName)
 	if err != nil {
 		slog.Error("error getting refreshToken cookie", "error", err)
@@ -45,7 +45,7 @@ func (s *Service) refreshHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) loginHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Routes) loginHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
@@ -74,7 +74,7 @@ func (s *Service) loginHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) registerHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Routes) registerHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("error reading request body", "error", err, "request_uri", r.RequestURI)
@@ -141,7 +141,7 @@ func (s *Service) registerHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) logoutHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Routes) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	accessTokenData, err := s.authenticator.Authenticate(r)
 	if errors.Is(err, UnauthenticatedError) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -170,7 +170,7 @@ func (s *Service) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Service) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
+func (s *Routes) setTokenPairCookies(w http.ResponseWriter, accessToken, refreshToken string) {
 	accessTokenCookie := createCookie(accessTokenCookieName, accessToken, accessTokenCookiePath, sessionstore.AccessTokenMaxAge)
 	refreshTokenCookie := createCookie(refreshTokenCookieName, refreshToken, refreshTokenCookiePath, sessionstore.RefreshTokenMaxAge)
 

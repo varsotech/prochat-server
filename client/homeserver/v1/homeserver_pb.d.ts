@@ -67,9 +67,19 @@ export enum Message_Type {
   ADD_USER_SERVER = 1,
 
   /**
-   * @generated from enum value: TYPE_GET_USER_SERVERS = 2;
+   * @generated from enum value: TYPE_GET_USER_COMMUNITIES = 2;
    */
-  GET_USER_SERVERS = 2,
+  GET_USER_COMMUNITIES = 2,
+
+  /**
+   * @generated from enum value: TYPE_GET_IDENTITY_TOKEN = 3;
+   */
+  GET_IDENTITY_TOKEN = 3,
+
+  /**
+   * @generated from enum value: TYPE_JOIN_COMMUNITY_SERVER = 4;
+   */
+  JOIN_COMMUNITY_SERVER = 4,
 }
 
 /**
@@ -106,37 +116,102 @@ export declare type AddUserServerResponse = Message$1<"homeserver.v1.AddUserServ
 export declare const AddUserServerResponseSchema: GenMessage<AddUserServerResponse>;
 
 /**
- * @generated from message homeserver.v1.GetUserServersRequest
+ * @generated from message homeserver.v1.GetUserCommunitiesRequest
  */
-export declare type GetUserServersRequest = Message$1<"homeserver.v1.GetUserServersRequest"> & {
+export declare type GetUserCommunitiesRequest = Message$1<"homeserver.v1.GetUserCommunitiesRequest"> & {
 };
 
 /**
- * Describes the message homeserver.v1.GetUserServersRequest.
- * Use `create(GetUserServersRequestSchema)` to create a new message.
+ * Describes the message homeserver.v1.GetUserCommunitiesRequest.
+ * Use `create(GetUserCommunitiesRequestSchema)` to create a new message.
  */
-export declare const GetUserServersRequestSchema: GenMessage<GetUserServersRequest>;
+export declare const GetUserCommunitiesRequestSchema: GenMessage<GetUserCommunitiesRequest>;
 
 /**
- * @generated from message homeserver.v1.GetUserServersResponse
+ * @generated from message homeserver.v1.GetUserCommunitiesResponse
  */
-export declare type GetUserServersResponse = Message$1<"homeserver.v1.GetUserServersResponse"> & {
+export declare type GetUserCommunitiesResponse = Message$1<"homeserver.v1.GetUserCommunitiesResponse"> & {
   /**
-   * @generated from field: repeated homeserver.v1.GetUserServersResponse.Server servers = 1;
+   * @generated from field: repeated homeserver.v1.GetUserCommunitiesResponse.Community communities = 1;
    */
-  servers: GetUserServersResponse_Server[];
+  communities: GetUserCommunitiesResponse_Community[];
 };
 
 /**
- * Describes the message homeserver.v1.GetUserServersResponse.
- * Use `create(GetUserServersResponseSchema)` to create a new message.
+ * Describes the message homeserver.v1.GetUserCommunitiesResponse.
+ * Use `create(GetUserCommunitiesResponseSchema)` to create a new message.
  */
-export declare const GetUserServersResponseSchema: GenMessage<GetUserServersResponse>;
+export declare const GetUserCommunitiesResponseSchema: GenMessage<GetUserCommunitiesResponse>;
 
 /**
- * @generated from message homeserver.v1.GetUserServersResponse.Server
+ * @generated from message homeserver.v1.GetUserCommunitiesResponse.Community
  */
-export declare type GetUserServersResponse_Server = Message$1<"homeserver.v1.GetUserServersResponse.Server"> & {
+export declare type GetUserCommunitiesResponse_Community = Message$1<"homeserver.v1.GetUserCommunitiesResponse.Community"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+};
+
+/**
+ * Describes the message homeserver.v1.GetUserCommunitiesResponse.Community.
+ * Use `create(GetUserCommunitiesResponse_CommunitySchema)` to create a new message.
+ */
+export declare const GetUserCommunitiesResponse_CommunitySchema: GenMessage<GetUserCommunitiesResponse_Community>;
+
+/**
+ * @generated from message homeserver.v1.WellKnown
+ */
+export declare type WellKnown = Message$1<"homeserver.v1.WellKnown"> & {
+  /**
+   * @generated from field: string public_key = 1;
+   */
+  publicKey: string;
+};
+
+/**
+ * Describes the message homeserver.v1.WellKnown.
+ * Use `create(WellKnownSchema)` to create a new message.
+ */
+export declare const WellKnownSchema: GenMessage<WellKnown>;
+
+/**
+ * @generated from message homeserver.v1.GetIdentityTokenRequest
+ */
+export declare type GetIdentityTokenRequest = Message$1<"homeserver.v1.GetIdentityTokenRequest"> & {
+};
+
+/**
+ * Describes the message homeserver.v1.GetIdentityTokenRequest.
+ * Use `create(GetIdentityTokenRequestSchema)` to create a new message.
+ */
+export declare const GetIdentityTokenRequestSchema: GenMessage<GetIdentityTokenRequest>;
+
+/**
+ * @generated from message homeserver.v1.GetIdentityTokenResponse
+ */
+export declare type GetIdentityTokenResponse = Message$1<"homeserver.v1.GetIdentityTokenResponse"> & {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token: string;
+};
+
+/**
+ * Describes the message homeserver.v1.GetIdentityTokenResponse.
+ * Use `create(GetIdentityTokenResponseSchema)` to create a new message.
+ */
+export declare const GetIdentityTokenResponseSchema: GenMessage<GetIdentityTokenResponse>;
+
+/**
+ * @generated from message homeserver.v1.JoinCommunityServerRequest
+ */
+export declare type JoinCommunityServerRequest = Message$1<"homeserver.v1.JoinCommunityServerRequest"> & {
   /**
    * @generated from field: string host = 1;
    */
@@ -144,8 +219,20 @@ export declare type GetUserServersResponse_Server = Message$1<"homeserver.v1.Get
 };
 
 /**
- * Describes the message homeserver.v1.GetUserServersResponse.Server.
- * Use `create(GetUserServersResponse_ServerSchema)` to create a new message.
+ * Describes the message homeserver.v1.JoinCommunityServerRequest.
+ * Use `create(JoinCommunityServerRequestSchema)` to create a new message.
  */
-export declare const GetUserServersResponse_ServerSchema: GenMessage<GetUserServersResponse_Server>;
+export declare const JoinCommunityServerRequestSchema: GenMessage<JoinCommunityServerRequest>;
+
+/**
+ * @generated from message homeserver.v1.JoinCommunityServerResponse
+ */
+export declare type JoinCommunityServerResponse = Message$1<"homeserver.v1.JoinCommunityServerResponse"> & {
+};
+
+/**
+ * Describes the message homeserver.v1.JoinCommunityServerResponse.
+ * Use `create(JoinCommunityServerResponseSchema)` to create a new message.
+ */
+export declare const JoinCommunityServerResponseSchema: GenMessage<JoinCommunityServerResponse>;
 
